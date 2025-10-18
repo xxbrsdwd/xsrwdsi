@@ -1,8 +1,7 @@
-
 /* =====================================================
    Inventario (100% GitHub Pages)
    - Persistencia local: localStorage
-   - Opcional: commit directo al repo vía GitHub REST API (PAT)
+   - Sincronización con GitHub mediante REST API
    ===================================================== */
 
 // ====== Estado ======
@@ -62,7 +61,7 @@ function renderTabla() {
   `).join("");
 }
 
-// ====== GitHub Sync (opcional) ======
+// ====== GitHub Sync ======
 function loadGhCfg() {
   try {
     const s = localStorage.getItem("GH_SYNC_CFG");
@@ -89,15 +88,31 @@ async function ghGetFile() {
   return {exists:true, sha:j.sha};
 }
 
+// === NUEVO: leer inventario completo desde el repo ===
+async function ghFetchJSON() {
+  const {owner, repo, branch, path, token} = GH_CFG;
+  if (!owner || !repo || !branch || !path) return null;
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+  const r = await fetch(url, {
+    headers: {
+      "Accept": "application/vnd.github+json",
+      ...(token ? {"Authorization": `Bearer ${token}`} : {})
+    }
+  });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`GET ${r.status}`);
+  const j = await r.json();
+  const decoded = decodeURIComponent(escape(atob(j.content.replace(/\n/g, ""))));
+  return JSON.parse(decoded);
+}
+
 function _b64(str) {
-  // utf8 -> b64
   return btoa(unescape(encodeURIComponent(str)));
 }
 
 async function ghPutFile(contentStr, message="Inventario: auto-guardado") {
   const {owner, repo, branch, path, token} = GH_CFG;
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
-  // obtener sha si existe
   let sha = null;
   try {
     const meta = await ghGetFile();
@@ -136,12 +151,12 @@ function ghAutoCommit() {
       console.error(e);
       showToast("No se pudo guardar en GitHub", "danger", 1600);
     }
-  }, 900); // de-bounce para evitar múltiples commits seguidos
+  }, 900);
 }
 
 // ====== Eventos ======
 window.addEventListener("DOMContentLoaded", async () => {
-  // Cargar inventario
+  // Cargar inventario desde local o data
   const local = loadLocal();
   if (local) {
     INVENTARIO = local;
@@ -149,9 +164,22 @@ window.addEventListener("DOMContentLoaded", async () => {
     INVENTARIO = await loadFromDataFallback();
     saveLocal();
   }
+
+  // 🔁 NUEVO: intentar cargar inventario desde GitHub automáticamente
+  try {
+    const remote = await ghFetchJSON();
+    if (Array.isArray(remote) && remote.length) {
+      INVENTARIO = remote;
+      saveLocal();
+      console.log("Inventario cargado desde GitHub automáticamente");
+    }
+  } catch (e) {
+    console.warn("No se pudo leer del repo:", e);
+  }
+
   renderTabla();
 
-  // Agregar
+  // Agregar producto
   document.getElementById("formAgregar").addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -244,7 +272,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const status = document.getElementById("syncStatus");
   const autoCommit = document.getElementById("autoCommit");
 
-  // Prellenar
   formSync.owner.value = GH_CFG.owner || "";
   formSync.repo.value  = GH_CFG.repo || "";
   formSync.branch.value= GH_CFG.branch || "main";
