@@ -19,17 +19,17 @@
     <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item">
-  <a class="nav-link btn btn-outline-primary mx-1 active" href="/xsrwdsi/index.html">Inventario</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link btn btn-outline-primary mx-1" href="/xsrwdsi/ventas.html">Ventas</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link btn btn-outline-primary mx-1" href="/xsrwdsi/resumen.html">Resumen</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link btn btn-outline-primary mx-1" href="/xsrwdsi/notas.html">Notas</a>
-</li>
+          <a class="nav-link btn btn-outline-primary mx-1 active" href="/xsrwdsi/index.html">Inventario</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary mx-1" href="/xsrwdsi/ventas.html">Ventas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary mx-1" href="/xsrwdsi/resumen.html">Resumen</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary mx-1" href="/xsrwdsi/notas.html">Notas</a>
+        </li>
       </ul>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -45,23 +45,39 @@
 
   <div class="card shadow-sm mb-4">
     <div class="card-body">
+      <!-- Puedes dejar el id "formAgregar"; mi JS lo detecta.
+           Si prefieres, puedes cambiarlo a id="formInventario". -->
       <form id="formAgregar" class="row g-3">
+
         <div class="col-sm-4">
           <label class="form-label">Nombre del Producto</label>
-          <input type="text" name="nombre" class="form-control" required>
+          <input type="text" id="nombre" name="nombre" class="form-control" required>
         </div>
+
         <div class="col-sm-2">
           <label class="form-label">Cantidad</label>
-          <input type="number" name="cantidad" class="form-control" min="0" required>
+          <input type="number" id="cantidad" name="cantidad" class="form-control" min="0" required>
         </div>
+
         <div class="col-sm-3">
           <label class="form-label">Costo (LPS)</label>
-          <input type="number" name="costo" step="0.01" class="form-control" min="0" required>
+          <input type="number" id="costo" name="costo" step="0.01" class="form-control" min="0" required>
         </div>
+
         <div class="col-sm-3">
           <label class="form-label">Venta (LPS)</label>
-          <input type="number" name="venta" step="0.01" class="form-control" min="0" required>
+          <input type="number" id="venta" name="venta" step="0.01" class="form-control" min="0" required>
         </div>
+
+        <!-- Nueva fila: Rubro EMPRESA/RAUDA -->
+        <div class="col-sm-3">
+          <label class="form-label">Rubro</label>
+          <select id="rubroInventario" class="form-select">
+            <option value="EMPRESA" selected>EMPRESA</option>
+            <option value="RAUDA">RAUDA</option>
+          </select>
+        </div>
+
         <div class="col-12 d-flex gap-2">
           <button type="submit" class="btn btn-primary">Agregar</button>
           <button id="btnExportJSON" class="btn btn-outline-primary" type="button">Exportar JSON</button>
@@ -72,30 +88,26 @@
     </div>
   </div>
 
-  <div class="card shadow-sm">
+  <!-- Tablas de inventario -->
+  <div class="card shadow-sm mb-4">
     <div class="card-body">
+      <h5 class="fw-bold text-primary mb-3">Inventario EMPRESA</h5>
       <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Producto</th>
-              <th>Cantidad</th>
-              <th>Costo LPS</th>
-              <th>Venta LPS</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyInv">
-            <tr><td colspan="6" class="text-muted">Cargando inventario...</td></tr>
-          </tbody>
-        </table>
+        <!-- Mi JS renderiza toda la tabla (thead/tbody). -->
+        <table id="tablaInventario" class="table table-striped table-hover align-middle"></table>
+      </div>
+
+      <hr class="my-4">
+
+      <h5 class="fw-bold text-success mb-3">Inventario RAUDA</h5>
+      <div class="table-responsive">
+        <table id="tablaInventarioRauda" class="table table-striped table-hover align-middle"></table>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal editar -->
+<!-- Modal editar (puedes conservarlo; mi JS edita en el form superior sin modal) -->
 <div class="modal fade" id="editarModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -186,6 +198,8 @@
 </div>
 
 <div class="footer">© 2025 Dev &lt;&gt; Brayan Raudales — Control de Inventario</div>
-<script src="inventory.js"></script>
+
+<!-- Importa la versión nueva de inventory.js -->
+<script src="inventory.js?v=4"></script>
 </body>
 </html>
