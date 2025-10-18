@@ -1,259 +1,265 @@
 /* =====================================================
-   Ventas - Descuenta stock + columnas ordenadas
+   Ventas - EMPRESA + RAUDA (GitHub Pages puro)
    ===================================================== */
 
-let INVENTARIO = [];
+let INVENTARIO = [];     // EMPRESA
+let INV_RAUDA = [];      // RAUDA
 let VENTAS_EMPRESA = [];
 let ENVIOS_MOTO = [];
 let ENVIOS_CAEX = [];
 let VENTAS_RAUDA = [];
 
-// === Config GitHub (igual que inventario) ===
-function loadGhCfg() {
-  try { const s = localStorage.getItem("GH_SYNC_CFG"); return s ? JSON.parse(s) : {}; }
-  catch { return {}; }
-}
+// === Config ===
+function loadGhCfg(){try{const s=localStorage.getItem("GH_SYNC_CFG");return s?JSON.parse(s):{}}catch{return {}}}
 const GH_CFG = loadGhCfg();
 
+function b64(str){return btoa(unescape(encodeURIComponent(str)));}
+
+async function ghGetSha(path){
+  const {owner,repo,branch,token}=GH_CFG;
+  const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`,{
+    headers:{"Accept":"application/vnd.github+json","Authorization": token ? `Bearer ${token}` : undefined}
+  });
+  if(r.status===200){const j=await r.json();return j.sha}
+  return null;
+}
+
+async function ghPutFile(path,content,msg="Auto-commit ventas"){
+  if(!GH_CFG.token || !GH_CFG.autoCommit) return;
+  const {owner,repo,branch,token}=GH_CFG;
+  const url=`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+  let sha=null;
+  try{ sha = await ghGetSha(path); }catch{}
+  const body = {
+    message: msg,
+    branch,
+    content: b64(JSON.stringify(content,null,2)),
+    ...(sha ? {sha} : {})
+  };
+  const r = await fetch(url,{
+    method:"PUT",
+    headers:{
+      "Accept":"application/vnd.github+json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){
+    console.error("GitHub PUT error:", r.status, await r.text());
+    throw new Error(`GitHub PUT ${r.status}`);
+  }
+}
+
 // === Utils ===
-function showToast(msg, type="success", ms=1800) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `alert alert-${type}`;
+function showToast(msg,type="success",ms=1600){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.className=`alert alert-${type}`;
   t.classList.remove("d-none");
   clearTimeout(showToast._t);
   showToast._t = setTimeout(()=>t.classList.add("d-none"), ms);
 }
-function fechaHora() {
-  const f = new Date();
-  return f.toLocaleDateString("es-HN")+" "+f.toLocaleTimeString("es-HN",{hour:"2-digit",minute:"2-digit"});
-}
-async function fetchJSON(url){ try{const r=await fetch(url,{cache:"no-store"}); if(r.ok) return r.json();}catch{} return []; }
-function saveLocal(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
-function loadLocal(k){ try{ const s=localStorage.getItem(k); return s?JSON.parse(s):[]; }catch{ return []; } }
-function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
-function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
+function toNum(n){const v=Number(n);return isNaN(v)?0:v;}
+function fechaHora(){const f=new Date();return f.toLocaleDateString("es-HN")+" "+f.toLocaleTimeString("es-HN",{hour:"2-digit",minute:"2-digit"})}
+async function fetchJSON(url){try{const r=await fetch(url,{cache:"no-store"});if(r.ok)return r.json();}catch{}return []}
+function saveLocal(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function loadLocal(k){try{const s=localStorage.getItem(k);return s?JSON.parse(s):[]}catch{return []}}
 
-// === Auto-commit GitHub (opcional) ===
-async function ghPutFile(path,content,msg="Auto-commit"){
-  if(!GH_CFG.token || !GH_CFG.autoCommit) return;
-  const {owner,repo,branch,token}=GH_CFG;
-  let sha=null;
-  try{
-    const meta=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{
-      headers:{"Accept":"application/vnd.github+json","Authorization":`Bearer ${token}`}
-    });
-    if(meta.status===200){ const j=await meta.json(); sha=j.sha; }
-  }catch{}
-  await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
-    method:"PUT",
-    headers:{
-      "Accept":"application/vnd.github+json",
-      "Authorization":`Bearer ${token}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({message:msg,branch,content:b64(JSON.stringify(content,null,2)),sha})
-  });
+// preferir local; si está vacío, leer del repo
+async function loadArr(key, url){
+  const local = loadLocal(key);
+  if(Array.isArray(local) && local.length) return local;
+  return await fetchJSON(url);
 }
 
-// === Orden fijo (EMPRESA) ===
-const COLS_EMPRESA = [
-  "Fecha","Producto","Cantidad","Costo Envío","Total Vendido LPS","Descuento","Impuesto","Ganancia LPS"
-];
-
-function renderOrdered(tableEl, arr, cols=COLS_EMPRESA){
-  if(!arr.length){ tableEl.innerHTML="<tr><td class='text-muted'>Sin registros</td></tr>"; return; }
-  tableEl.innerHTML =
-    "<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>"+
-    "<tbody>"+arr.map(r=>"<tr>"+cols.map(c=>`<td>${(r[c] ?? "").toString()}</td>`).join("")+"</tr>").join("")+"</tbody>";
-}
-function renderAuto(tableEl, arr){
-  if(!arr.length){ tableEl.innerHTML="<tr><td class='text-muted'>Sin registros</td></tr>"; return; }
-  const cols = Object.keys(arr[0]);
-  tableEl.innerHTML =
-    "<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>"+
-    "<tbody>"+arr.map(r=>"<tr>"+cols.map(c=>`<td>${r[c]}</td>`).join("")+"</tr>").join("")+"</tbody>";
+// Render genérico con orden de columnas fijo (si se pasa)
+function renderTable(el, arr, columns){
+  if(!arr.length){ el.innerHTML="<tr><td class='text-muted'>Sin registros</td></tr>"; return; }
+  const cols = columns && columns.length ? columns : Object.keys(arr[0]);
+  el.innerHTML =
+    "<thead><tr>" + cols.map(c=>`<th>${c}</th>`).join("") + "</tr></thead>" +
+    "<tbody>" + arr.map(r=>"<tr>"+cols.map(c=>`<td>${r[c] ?? ""}</td>`).join("")+"</tr>").join("") + "</tbody>";
 }
 
-// === Inventario ===
-async function cargarInventario(){
-  const local=loadLocal("INVENTARIO_JSON");
-  if(local?.length) return local;
-  return await fetchJSON("data/INVENTARIO.json");
-}
-const buscarProd = nombre =>
-  INVENTARIO.find(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
+// === Inventarios ===
+async function cargarInventarioEmpresa(){ const local=loadLocal("INVENTARIO_JSON"); if(local?.length) return local; return await fetchJSON("data/INVENTARIO.json"); }
+async function cargarInventarioRauda(){ const local=loadLocal("INVENTARIO_RAUDA_JSON"); if(local?.length) return local; return await fetchJSON("data/INVENTARIO_RAUDA.json"); }
+const buscarEmp = n => INVENTARIO.find(p => (p.nombre||"").toLowerCase()===(n||"").toLowerCase());
+const buscarRau = n => INV_RAUDA.find(p => (p.nombre||"").toLowerCase()===(n||"").toLowerCase());
 
-async function descontarStock(nombre, cant){
-  const idx = INVENTARIO.findIndex(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
-  if(idx<0){ showToast("Producto no encontrado en inventario","danger"); return false; }
-  const disp = toNum(INVENTARIO[idx].cantidad);
-  if(cant>disp){ showToast(`Stock insuficiente (disponible: ${disp})`,"danger"); return false; }
-  INVENTARIO[idx].cantidad = disp - cant;
+async function descStockEmp(nombre,cant){
+  const i = INVENTARIO.findIndex(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
+  if(i<0){ showToast("Producto no encontrado (EMPRESA)","danger"); return false; }
+  const disp = toNum(INVENTARIO[i].cantidad);
+  if(cant>disp){ showToast(`Stock insuficiente EMPRESA (disp: ${disp})`,"danger"); return false; }
+  INVENTARIO[i].cantidad = disp - cant;
   saveLocal("INVENTARIO_JSON", INVENTARIO);
-  await ghPutFile("data/INVENTARIO.json", INVENTARIO, "Actualizar stock tras venta");
+  try{ await ghPutFile("data/INVENTARIO.json", INVENTARIO, "Actualizar stock EMPRESA"); }catch{}
+  return true;
+}
+async function descStockRau(nombre,cant){
+  const i = INV_RAUDA.findIndex(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
+  if(i<0){ showToast("Producto no encontrado (RAUDA)","danger"); return false; }
+  const disp = toNum(INV_RAUDA[i].cantidad);
+  if(cant>disp){ showToast(`Stock insuficiente RAUDA (disp: ${disp})`,"danger"); return false; }
+  INV_RAUDA[i].cantidad = disp - cant;
+  saveLocal("INVENTARIO_RAUDA_JSON", INV_RAUDA);
+  try{ await ghPutFile("data/INVENTARIO_RAUDA.json", INV_RAUDA, "Actualizar stock RAUDA"); }catch{}
   return true;
 }
 
-// === Migración a esquema/orden nuevo (EMPRESA) ===
-function migEmpresa(arr){
-  return arr.map(r=>{
-    const nombre = r.Producto ?? r.producto ?? "";
-    const cant   = toNum(r.Cantidad ?? r.Cant);
-    const prod   = buscarProd(nombre) || {venta:0,costo:0};
-    const desc   = toNum(r.Descuento);
-    const imp    = (r.Impuesto || "").toString();
-    const totalVend = toNum(prod.venta)*cant;           // sin envío
-    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc;
-    return {"Fecha": r.Fecha || fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": 0,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
-  });
-}
-function migMoto(arr){
-  return arr.map(r=>{
-    const nombre = r.Producto ?? "";
-    const cant   = toNum(r.Cantidad ?? r.Cant);
-    const prod   = buscarProd(nombre) || {venta:0,costo:0};
-    const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
-    const desc   = toNum(r.Descuento);
-    const imp    = (r.Impuesto || "").toString();
-    const totalVend = (toNum(prod.venta)*cant) + envio; // + envío moto
-    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc; // envío NO afecta ganancia
-    return {"Fecha": r.Fecha || fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
-  });
-}
-function migCaex(arr){
-  return arr.map(r=>{
-    const nombre = r.Producto ?? "";
-    const cant   = toNum(r.Cantidad ?? r.Cant);
-    const prod   = buscarProd(nombre) || {venta:0,costo:0};
-    const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
-    const desc   = toNum(r.Descuento);
-    const imp    = (r.Impuesto || "").toString();
-    const totalVend = toNum(prod.venta)*cant;           // Caex NO suma envío
-    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - envio - desc;
-    return {"Fecha": r.Fecha || fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
-  });
-}
+// === Columnas fijas (EMPRESA)
+const COLS_EMPRESA = ["Fecha","Producto","Cantidad","Costo Envío","Total Vendido LPS","Descuento","Impuesto","Ganancia LPS"];
+const COLS_RAUDA   = ["Fecha","Producto","Cantidad","Inversión LPS","Vendido LPS","Descuento","Impuesto","Ganancia LPS","Descripción","Comentario"];
 
 // === Init ===
 window.addEventListener("DOMContentLoaded", async ()=>{
-  INVENTARIO = await cargarInventario();
+  // Inventarios
+  INVENTARIO = await cargarInventarioEmpresa();
+  INV_RAUDA  = await cargarInventarioRauda();
 
-  // selects EMPRESA
-  const prods = INVENTARIO.map(p=>p.nombre);
+  // Llenar selects EMPRESA
+  const nombresEmp = INVENTARIO.map(p=>p.nombre);
   ["prodVentaDia","prodEnvioMoto","prodEnvioCaex"].forEach(id=>{
-    const s=document.getElementById(id);
-    if(s) s.innerHTML="<option value=''>Seleccione...</option>"+prods.map(p=>`<option>${p}</option>`).join("");
+    const s = document.getElementById(id);
+    if(s) s.innerHTML = "<option value=''>Seleccione...</option>" + nombresEmp.map(n=>`<option>${n}</option>`).join("");
   });
 
-  // cargar + migrar
-  VENTAS_EMPRESA = migEmpresa(loadLocal("VENTAS_EMPRESA"));
-  ENVIOS_MOTO    = migMoto(loadLocal("ENVIOS_MOTO"));
-  ENVIOS_CAEX    = migCaex(loadLocal("ENVIOS_CAEX"));
-  VENTAS_RAUDA   = loadLocal("VENTAS_RAUDA");
+  // Select RAUDA
+  const selR = document.getElementById("prodRauda");
+  if(selR){
+    const nombresR = INV_RAUDA.map(p=>p.nombre);
+    selR.innerHTML = "<option value=''>Seleccione...</option>" + nombresR.map(n=>`<option>${n}</option>`).join("");
+  }
 
-  renderOrdered(tablaVentaDia, VENTAS_EMPRESA);
-  renderOrdered(tablaEnvioMoto, ENVIOS_MOTO);
-  renderOrdered(tablaEnvioCaex, ENVIOS_CAEX);
-  renderAuto(tablaRauda, VENTAS_RAUDA);
+  // Prellenar inversión RAUDA = costo unitario × cantidad
+  function updateInvRauda(){
+    const nombre = (document.getElementById("prodRauda")?.value||"").trim();
+    const cant   = toNum(document.getElementById("cantRauda")?.value||1);
+    const p      = buscarRau(nombre);
+    if(!p) return;
+    const inv = toNum(p.costo) * cant;
+    const invInput = document.getElementById("invRauda");
+    if(invInput) invInput.value = inv.toFixed(2);
+  }
+  document.getElementById("prodRauda")?.addEventListener("change", updateInvRauda);
+  document.getElementById("cantRauda")?.addEventListener("input", updateInvRauda);
 
+  // Cargar registros (local -> si vacío, repo)
+  VENTAS_EMPRESA = await loadArr("VENTAS_EMPRESA", "data/VENTAS_EMPRESA.json");
+  ENVIOS_MOTO    = await loadArr("ENVIOS_MOTO",   "data/ENVIOS_MOTO.json");
+  ENVIOS_CAEX    = await loadArr("ENVIOS_CAEX",   "data/ENVIOS_CAEX.json");
+  VENTAS_RAUDA   = await loadArr("VENTAS_RAUDA",  "data/VENTAS_RAUDA.json");
+
+  // Render
+  renderTable(document.getElementById("tablaVentaDia"), VENTAS_EMPRESA, COLS_EMPRESA);
+  renderTable(document.getElementById("tablaEnvioMoto"), ENVIOS_MOTO,   COLS_EMPRESA);
+  renderTable(document.getElementById("tablaEnvioCaex"), ENVIOS_CAEX,   COLS_EMPRESA);
+  renderTable(document.getElementById("tablaRauda"),     VENTAS_RAUDA,  COLS_RAUDA);
+
+  // Guardar locals (por si vinieron del repo)
   saveLocal("VENTAS_EMPRESA", VENTAS_EMPRESA);
   saveLocal("ENVIOS_MOTO", ENVIOS_MOTO);
   saveLocal("ENVIOS_CAEX", ENVIOS_CAEX);
+  saveLocal("VENTAS_RAUDA", VENTAS_RAUDA);
 
-  // Ventas del día
-  formVentaDia.addEventListener("submit", async e=>{
+  // === Ventas del día (EMPRESA)
+  document.getElementById("formVentaDia")?.addEventListener("submit", async e=>{
     e.preventDefault();
     const nombre = prodVentaDia.value;
-    const cant   = Number(cantVentaDia.value);
-    const desc   = Number(descVentaDia.value)||0;
-    const imp    = (impVentaDia.value||"").trim();
-    const prod   = buscarProd(nombre);
-    if(!prod) return showToast("Producto no encontrado","danger");
+    const cant   = toNum(cantVentaDia.value);
+    const desc   = toNum(descVentaDia.value)||0;
+    const imp    = (impVentaDia.value||"0").trim();
+    const p = buscarEmp(nombre);
+    if(!p) return showToast("Producto no encontrado","danger");
+    if(!(await descStockEmp(nombre,cant))) return;
 
-    // valida y descuenta stock
-    if(!(await descontarStock(nombre, cant))) return;
+    const totalVend = toNum(p.venta)*cant;
+    const gan = ((toNum(p.venta)-toNum(p.costo))*cant) - desc;
 
-    const totalVend = Number(prod.venta)*cant;
-    const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - desc;
-
-    const reg = {"Fecha": fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": 0,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
-
+    const reg = {"Fecha":fechaHora(),"Producto":nombre,"Cantidad":cant,"Costo Envío":0,"Total Vendido LPS":totalVend.toFixed(2),"Descuento":desc,"Impuesto":imp,"Ganancia LPS":gan.toFixed(2)};
     VENTAS_EMPRESA.push(reg);
     saveLocal("VENTAS_EMPRESA", VENTAS_EMPRESA);
-    renderOrdered(tablaVentaDia, VENTAS_EMPRESA);
+    renderTable(tablaVentaDia, VENTAS_EMPRESA, COLS_EMPRESA);
     showToast("✅ Venta registrada");
-    await ghPutFile("data/VENTAS_EMPRESA.json", VENTAS_EMPRESA, "Venta del día");
+    try{ await ghPutFile("data/VENTAS_EMPRESA.json", VENTAS_EMPRESA, "Venta del día"); }catch{}
+    e.target.reset(); impVentaDia.value="0";
   });
 
-  // Envíos Moto
-  formEnvioMoto.addEventListener("submit", async e=>{
+  // === Envíos Moto (EMPRESA)
+  document.getElementById("formEnvioMoto")?.addEventListener("submit", async e=>{
     e.preventDefault();
     const nombre = prodEnvioMoto.value;
-    const cant   = Number(cantEnvioMoto.value);
-    const envio  = Number(costoEnvioMoto.value)||0;
-    const desc   = Number(descEnvioMoto.value)||0;
-    const imp    = (impEnvioMoto.value||"").trim();
-    const prod   = buscarProd(nombre);
-    if(!prod) return showToast("Producto no encontrado","danger");
+    const cant   = toNum(cantEnvioMoto.value);
+    const envio  = toNum(costoEnvioMoto.value)||0;
+    const desc   = toNum(descEnvioMoto.value)||0;
+    const imp    = (impEnvioMoto.value||"0").trim();
+    const p = buscarEmp(nombre);
+    if(!p) return showToast("Producto no encontrado","danger");
+    if(!(await descStockEmp(nombre,cant))) return;
 
-    if(!(await descontarStock(nombre, cant))) return;
+    const totalVend = (toNum(p.venta)*cant)+envio;
+    const gan = ((toNum(p.venta)-toNum(p.costo))*cant) - desc;
 
-    const totalVend = (Number(prod.venta)*cant) + envio; // + envío moto
-    const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - desc; // envío NO afecta ganancia
-
-    const reg = {"Fecha": fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
-
+    const reg = {"Fecha":fechaHora(),"Producto":nombre,"Cantidad":cant,"Costo Envío":envio,"Total Vendido LPS":totalVend.toFixed(2),"Descuento":desc,"Impuesto":imp,"Ganancia LPS":gan.toFixed(2)};
     ENVIOS_MOTO.push(reg);
     saveLocal("ENVIOS_MOTO", ENVIOS_MOTO);
-    renderOrdered(tablaEnvioMoto, ENVIOS_MOTO);
+    renderTable(tablaEnvioMoto, ENVIOS_MOTO, COLS_EMPRESA);
     showToast("✅ Envío Moto registrado");
-    await ghPutFile("data/ENVIOS_MOTO.json", ENVIOS_MOTO, "Envío moto");
+    try{ await ghPutFile("data/ENVIOS_MOTO.json", ENVIOS_MOTO, "Envío moto"); }catch{}
+    e.target.reset(); impEnvioMoto.value="0";
   });
 
-  // Envíos Caex
-  formEnvioCaex.addEventListener("submit", async e=>{
+  // === Envíos Caex (EMPRESA)
+  document.getElementById("formEnvioCaex")?.addEventListener("submit", async e=>{
     e.preventDefault();
     const nombre = prodEnvioCaex.value;
-    const cant   = Number(cantEnvioCaex.value);
-    const envio  = Number(costoEnvioCaex.value)||0;
-    const desc   = Number(descEnvioCaex.value)||0;
-    const imp    = (impEnvioCaex.value||"").trim();
-    const prod   = buscarProd(nombre);
-    if(!prod) return showToast("Producto no encontrado","danger");
+    const cant   = toNum(cantEnvioCaex.value);
+    const envio  = toNum(costoEnvioCaex.value)||0;
+    const desc   = toNum(descEnvioCaex.value)||0;
+    const imp    = (impEnvioCaex.value||"0").trim();
+    const p = buscarEmp(nombre);
+    if(!p) return showToast("Producto no encontrado","danger");
+    if(!(await descStockEmp(nombre,cant))) return;
 
-    if(!(await descontarStock(nombre, cant))) return;
+    const totalVend = toNum(p.venta)*cant; // Caex NO suma envío al total vendido
+    const gan = ((toNum(p.venta)-toNum(p.costo))*cant) - envio - desc;
 
-    const totalVend = Number(prod.venta)*cant;           // Caex NO suma envío
-    const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - envio - desc;
-
-    const reg = {"Fecha": fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
-
+    const reg = {"Fecha":fechaHora(),"Producto":nombre,"Cantidad":cant,"Costo Envío":envio,"Total Vendido LPS":totalVend.toFixed(2),"Descuento":desc,"Impuesto":imp,"Ganancia LPS":gan.toFixed(2)};
     ENVIOS_CAEX.push(reg);
     saveLocal("ENVIOS_CAEX", ENVIOS_CAEX);
-    renderOrdered(tablaEnvioCaex, ENVIOS_CAEX);
+    renderTable(tablaEnvioCaex, ENVIOS_CAEX, COLS_EMPRESA);
     showToast("✅ Envío Caex registrado");
-    await ghPutFile("data/ENVIOS_CAEX.json", ENVIOS_CAEX, "Envío caex");
+    try{ await ghPutFile("data/ENVIOS_CAEX.json", ENVIOS_CAEX, "Envío caex"); }catch{}
+    e.target.reset(); impEnvioCaex.value="0";
   });
 
-  // Rauda (no toca inventario)
-  formRauda.addEventListener("submit", async e=>{
+  // === Rauda (vende contra inventario RAUDA)
+  document.getElementById("formRauda")?.addEventListener("submit", async e=>{
     e.preventDefault();
-    const descR = (document.getElementById("descRauda").value||"").trim();
-    const inv   = Number(document.getElementById("invRauda").value);
-    const vend  = Number(document.getElementById("vendRauda").value);
-    const desc  = Number(document.getElementById("descuentoRauda").value)||0; // ojo: id correcto en HTML
-    const imp   = (document.getElementById("impRauda").value||"").trim();
-    const com   = (document.getElementById("comRauda").value||"").trim();
+    const nombre = (document.getElementById("prodRauda")?.value||"").trim();
+    const cant   = toNum(document.getElementById("cantRauda")?.value||1);
+    const inv    = toNum(document.getElementById("invRauda")?.value||0);
+    const vend   = toNum(document.getElementById("vendRauda")?.value||0);
+    const desc   = toNum(document.getElementById("descuentoRauda")?.value||0);
+    const imp    = (document.getElementById("impRauda")?.value||"0").trim();
+    const descTxt= (document.getElementById("descRauda")?.value||"").trim();
+    const com    = (document.getElementById("comRauda")?.value||"").trim();
+
+    if(!nombre) return showToast("Selecciona un producto RAUDA","danger");
+    if(cant<=0)  return showToast("Cantidad inválida","danger");
+
+    if(!(await descStockRau(nombre,cant))) return;
 
     const gan = (vend - inv) - desc;
-
-    const reg = {"Fecha": fechaHora(),"Descripción": descR,"Inversión LPS": inv,"Vendido LPS": vend,"Ganancia LPS": gan.toFixed(2),"Descuento": desc,"Impuesto": imp,"Comentario": com};
+    const reg = {"Fecha":fechaHora(),"Producto":nombre,"Cantidad":cant,"Inversión LPS":inv.toFixed(2),"Vendido LPS":vend.toFixed(2),"Descuento":desc,"Impuesto":imp,"Ganancia LPS":gan.toFixed(2),"Descripción":descTxt,"Comentario":com};
 
     VENTAS_RAUDA.push(reg);
     saveLocal("VENTAS_RAUDA", VENTAS_RAUDA);
-    renderAuto(tablaRauda, VENTAS_RAUDA);
-    showToast("✅ Venta Rauda registrada");
-    await ghPutFile("data/VENTAS_RAUDA.json", VENTAS_RAUDA, "Venta Rauda");
+    renderTable(tablaRauda, VENTAS_RAUDA, COLS_RAUDA);
+    showToast("✅ Venta RAUDA registrada");
+    try{ await ghPutFile("data/VENTAS_RAUDA.json", VENTAS_RAUDA, "Venta RAUDA"); }catch{}
+    e.target.reset(); document.getElementById("cantRauda").value="1"; document.getElementById("impRauda").value="0"; updateInvRauda();
   });
 });
