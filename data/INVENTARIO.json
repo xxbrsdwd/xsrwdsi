@@ -1,9 +1,9 @@
 [
   {
     "nombre": "Pasamontañas",
-    "cantidad": 92,
+    "cantidad": 100,
     "costo": 25,
-    "venta": 100
+    "venta": 101
   },
   {
     "nombre": "Foco camara",
@@ -18,20 +18,8 @@
     "venta": 504
   },
   {
-    "nombre": "Pastilla",
-    "cantidad": 50,
-    "costo": 35,
-    "venta": 500
-  },
-  {
-    "nombre": "asdasd CACA",
-    "costo": 1,
-    "venta": 10,
-    "cantidad": 0
-  },
-  {
-    "nombre": "Cagadaaaa",
-    "cantidad": 98,
+    "nombre": "Pipi",
+    "cantidad": 100,
     "costo": 1,
     "venta": 100
   }
