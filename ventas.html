@@ -1,0 +1,165 @@
+!DOCTYPE html
+html lang=es
+head
+  meta charset=UTF-8
+  meta name=viewport content=width=device-width, initial-scale=1.0
+  titleVentas  Sistema Brayan Raudalestitle
+  link rel=stylesheet href=staticstyle.css
+  link href=httpscdn.jsdelivr.netnpmbootstrap@5.3.3distcssbootstrap.min.css rel=stylesheet
+head
+body class=bg-light
+
+  !-- Navbar --
+  nav class=navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4
+    div class=container
+      a class=navbar-brand fw-bold text-primary href=index.htmlInventarioa
+      div
+        a href=index.html class=btn btn-outline-primary btn-sm mx-1Inventarioa
+        a href=ventas.html class=btn btn-primary btn-sm mx-1Ventasa
+        a href=# class=btn btn-outline-primary btn-sm mx-1 disabledResumena
+        a href=# class=btn btn-outline-primary btn-sm mx-1 disabledNotasa
+      div
+    div
+  nav
+
+  div class=container mb-5
+    h3 class=text-center mb-4Gestión de Ventash3
+
+    !-- VENTAS DEL DÍA --
+    div class=card mb-4 shadow-sm
+      div class=card-body
+        h5 class=card-title text-primary fw-boldVentas del Día (EMPRESA)h5
+        form id=formVentaDia class=row g-2 align-items-end
+          div class=col-md-4
+            label class=form-labelProductolabel
+            select id=prodVentaDia class=form-select requiredselect
+          div
+          div class=col-md-2
+            label class=form-labelCantidadlabel
+            input type=number min=1 id=cantVentaDia class=form-control required
+          div
+          div class=col-md-2
+            label class=form-labelDescuento (LPS)label
+            input type=number min=0 id=descVentaDia class=form-control value=0
+          div
+          div class=col-md-2
+            label class=form-labelImpuestolabel
+            input type=text id=impVentaDia class=form-control placeholder=Ej. ISV 15%
+          div
+          div class=col-md-2
+            button class=btn btn-success w-100Registrarbutton
+          div
+        form
+        table class=table table-sm table-hover mt-3 id=tablaVentaDiatable
+      div
+    div
+
+    !-- ENVIOS MOTO --
+    div class=card mb-4 shadow-sm
+      div class=card-body
+        h5 class=card-title text-warning fw-boldEnvíos Moto (EMPRESA)h5
+        form id=formEnvioMoto class=row g-2 align-items-end
+          div class=col-md-4
+            label class=form-labelProductolabel
+            select id=prodEnvioMoto class=form-select requiredselect
+          div
+          div class=col-md-2
+            label class=form-labelCantidadlabel
+            input type=number min=1 id=cantEnvioMoto class=form-control required
+          div
+          div class=col-md-2
+            label class=form-labelCosto Envío Motolabel
+            input type=number min=0 id=costoEnvioMoto class=form-control
+          div
+          div class=col-md-2
+            label class=form-labelDescuentolabel
+            input type=number min=0 id=descEnvioMoto class=form-control value=0
+          div
+          div class=col-md-2
+            label class=form-labelImpuestolabel
+            input type=text id=impEnvioMoto class=form-control
+          div
+          div class=col-md-2
+            button class=btn btn-success w-100Registrarbutton
+          div
+        form
+        table class=table table-sm table-hover mt-3 id=tablaEnvioMototable
+      div
+    div
+
+    !-- ENVIOS CAEX --
+    div class=card mb-4 shadow-sm
+      div class=card-body
+        h5 class=card-title text-danger fw-boldEnvíos Caex (EMPRESA)h5
+        form id=formEnvioCaex class=row g-2 align-items-end
+          div class=col-md-4
+            label class=form-labelProductolabel
+            select id=prodEnvioCaex class=form-select requiredselect
+          div
+          div class=col-md-2
+            label class=form-labelCantidadlabel
+            input type=number min=1 id=cantEnvioCaex class=form-control required
+          div
+          div class=col-md-2
+            label class=form-labelCosto Envío Caexlabel
+            input type=number min=0 id=costoEnvioCaex class=form-control
+          div
+          div class=col-md-2
+            label class=form-labelDescuentolabel
+            input type=number min=0 id=descEnvioCaex class=form-control value=0
+          div
+          div class=col-md-2
+            label class=form-labelImpuestolabel
+            input type=text id=impEnvioCaex class=form-control
+          div
+          div class=col-md-2
+            button class=btn btn-success w-100Registrarbutton
+          div
+        form
+        table class=table table-sm table-hover mt-3 id=tablaEnvioCaextable
+      div
+    div
+
+    !-- RAUDA --
+    div class=card mb-4 shadow-sm
+      div class=card-body
+        h5 class=card-title text-success fw-boldRaudah5
+        form id=formRauda class=row g-2 align-items-end
+          div class=col-md-3
+            label class=form-labelDescripciónlabel
+            input type=text id=descRauda class=form-control required
+          div
+          div class=col-md-2
+            label class=form-labelCosto Inversiónlabel
+            input type=number min=0 id=invRauda class=form-control required
+          div
+          div class=col-md-2
+            label class=form-labelCosto Vendidolabel
+            input type=number min=0 id=vendRauda class=form-control required
+          div
+          div class=col-md-2
+            label class=form-labelDescuentolabel
+            input type=number min=0 id=descRauda class=form-control value=0
+          div
+          div class=col-md-2
+            label class=form-labelImpuestolabel
+            input type=text id=impRauda class=form-control
+          div
+          div class=col-md-3
+            label class=form-labelComentariolabel
+            input type=text id=comRauda class=form-control
+          div
+          div class=col-md-2
+            button class=btn btn-success w-100Registrarbutton
+          div
+        form
+        table class=table table-sm table-hover mt-3 id=tablaRaudatable
+      div
+    div
+  div
+
+  div id=toast class=alert d-none position-fixed bottom-0 end-0 m-3div
+
+  script src=ventas.jsscript
+body
+html
