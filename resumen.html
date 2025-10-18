@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resumen | Sistema Brayan Raudales</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand fw-bold text-primary" href="index.html">📊 Inventario</a>
+      <div class="collapse navbar-collapse show">
+        <ul class="navbar-nav ms-3">
+          <li class="nav-item"><a class="nav-link btn btn-outline-primary mx-1" href="index.html">Inventario</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-outline-primary mx-1" href="ventas.html">Ventas</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-primary mx-1 text-white" href="resumen.html">Resumen</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-outline-primary mx-1" href="notas.html">Notas</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <h3 class="text-center mb-4">Resumen</h3>
+    <div id="cards" class="row g-3"></div>
+  </div>
+
+  <script>
+  async function fetchJSON(u){ try{ const r=await fetch(u,{cache:"no-store"}); if(r.ok) return r.json(); }catch{} return []; }
+  function loadLS(k){ try{ const s=localStorage.getItem(k); return s?JSON.parse(s):[]; }catch{ return []; } }
+  async function prefer(key,url){ const l=loadLS(key); if(l&&l.length) return l; return await fetchJSON(url); }
+  function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
+
+  async function calc(){
+    const invEmp = await prefer("INVENTARIO_JSON","data/INVENTARIO.json");
+    const invRau = await prefer("INVENTARIO_RAUDA_JSON","data/INVENTARIO_RAUDA.json");
+    const venDia = await prefer("VENTAS_EMPRESA","data/VENTAS_EMPRESA.json");
+    const moto   = await prefer("ENVIOS_MOTO","data/ENVIOS_MOTO.json");
+    const caex   = await prefer("ENVIOS_CAEX","data/ENVIOS_CAEX.json");
+    const rauda  = await prefer("VENTAS_RAUDA","data/VENTAS_RAUDA.json");
+
+    const numVentas = venDia.length + moto.length + caex.length + rauda.length;
+    const totalInvertido = [...invEmp, ...invRau].reduce((s,p)=> s + toNum(p.costo)*toNum(p.cantidad), 0);
+    const totalEnviosMoto = moto.reduce((s,r)=> s + toNum(r["Costo Envío"]), 0);
+    function sumGan(arr){ return arr.reduce((s,r)=> s + toNum(r["Ganancia LPS"]), 0); }
+    const ganancias = sumGan(venDia) + sumGan(moto) + sumGan(caex) + sumGan(rauda);
+
+    const items = [
+      {title:"Cantidad de ventas realizadas", val:numVentas},
+      {title:"Total invertido en productos (stock actual)", val:"L "+totalInvertido.toFixed(2)},
+      {title:"Envíos de moto (costos acumulados)", val:"L "+totalEnviosMoto.toFixed(2)},
+      {title:"Ganancias totales", val:"L "+ganancias.toFixed(2)},
+    ];
+
+    const c = document.getElementById("cards");
+    c.innerHTML = items.map(i=>`
+      <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="fw-bold mb-1">${i.title}</div>
+            <div class="display-6">${i.val}</div>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+  calc();
+  </script>
+</body>
+</html>

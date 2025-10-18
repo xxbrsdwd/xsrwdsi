@@ -1,0 +1,5 @@
+
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.navbar .btn { border-radius: .5rem; }
+.table td, .table th { vertical-align: middle; }
+.footer { font-size: .9rem; }
