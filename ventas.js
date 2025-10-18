@@ -1,5 +1,5 @@
 /* =====================================================
-   Ventas - EMPRESA + RAUDA (GitHub Pages puro)
+   Ventas - EMPRESA + RAUDA (GitHub Pages puro) - FIX
    ===================================================== */
 
 let INVENTARIO = [];     // EMPRESA
@@ -9,49 +9,106 @@ let ENVIOS_MOTO = [];
 let ENVIOS_CAEX = [];
 let VENTAS_RAUDA = [];
 
-// === Config ===
-function loadGhCfg(){try{const s=localStorage.getItem("GH_SYNC_CFG");return s?JSON.parse(s):{}}catch{return {}}}
-const GH_CFG = loadGhCfg();
+/* ============== Config GitHub ============== */
+// Nuevo esquema: meta en LS (sin token) + token en SS.
+// Compatibilidad: si no hay meta/token nuevos, usa GH_SYNC_CFG (antiguo).
 
-function b64(str){return btoa(unescape(encodeURIComponent(str)));}
+const LS_META_KEY = "GH_SYNC_META";       // { owner, repo, branch, path, autoCommit }
+const SS_TOKEN_KEY = "GH_TOKEN_SESSION";  // token en sessionStorage (no queda guardado en disco)
+const LEGACY_KEY   = "GH_SYNC_CFG";       // compatibilidad con config anterior (incluía token)
 
+function loadGhMeta(){
+  try { return JSON.parse(localStorage.getItem(LS_META_KEY) || "{}"); }
+  catch { return {}; }
+}
+function loadGhTokenSession(){
+  return sessionStorage.getItem(SS_TOKEN_KEY) || null;
+}
+function loadLegacyCfg(){
+  try { return JSON.parse(localStorage.getItem(LEGACY_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+// Siempre leer la última config justo antes de llamar a la API
+function loadGhCfg(){
+  const meta = loadGhMeta();
+  const token = loadGhTokenSession();
+
+  // Defaults que pediste
+  const owner  = (meta.owner  || "xxbrsdwd").trim();
+  const repo   = (meta.repo   || "xsrwdsi").trim();
+  const branch = (meta.branch || "main").trim();
+  const path   = (meta.path   || "data/INVENTARIO.json").trim();
+  const autoCommit = !!meta.autoCommit;
+
+  // Si no hay token de sesión, intenta el legacy (por compatibilidad)
+  let tk = token;
+  if (!tk) {
+    const legacy = loadLegacyCfg();
+    if (legacy && legacy.token) tk = legacy.token;
+  }
+
+  return { owner, repo, branch, path, autoCommit, token: tk || null };
+}
+
+// Codifica cada segmento pero preserva las barras
+function encodePathForGithub(rawPath){
+  return (rawPath || "").split("/").map(encodeURIComponent).join("/");
+}
+
+function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+/* ============== GitHub API helpers ============== */
 async function ghGetSha(path){
-  const {owner,repo,branch,token}=GH_CFG;
-  const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`,{
-    headers:{"Accept":"application/vnd.github+json","Authorization": token ? `Bearer ${token}` : undefined}
-  });
-  if(r.status===200){const j=await r.json();return j.sha}
+  const {owner,repo,branch,token} = loadGhCfg();
+  const encPath = encodePathForGithub(path);
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encPath}?ref=${branch}`;
+  const headers = {"Accept":"application/vnd.github+json"};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const r = await fetch(url, {headers});
+  if (r.status === 200){
+    const j = await r.json();
+    return j.sha || null;
+  }
   return null;
 }
 
-async function ghPutFile(path,content,msg="Auto-commit ventas"){
-  if(!GH_CFG.token || !GH_CFG.autoCommit) return;
-  const {owner,repo,branch,token}=GH_CFG;
-  const url=`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
-  let sha=null;
-  try{ sha = await ghGetSha(path); }catch{}
+async function ghPutFile(path, content, msg="Auto-commit ventas"){
+  const {owner,repo,branch,token,autoCommit} = loadGhCfg();
+  if (!token || !autoCommit) return; // sin token o autoCommit off → no sube
+
+  const encPath = encodePathForGithub(path);
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encPath}`;
+  let sha = null;
+  try { sha = await ghGetSha(path); } catch {}
+
   const body = {
     message: msg,
     branch,
     content: b64(JSON.stringify(content,null,2)),
     ...(sha ? {sha} : {})
   };
-  const r = await fetch(url,{
-    method:"PUT",
-    headers:{
+
+  const r = await fetch(url, {
+    method: "PUT",
+    headers: {
       "Accept":"application/vnd.github+json",
       "Authorization": `Bearer ${token}`,
       "Content-Type":"application/json"
     },
     body: JSON.stringify(body)
   });
-  if(!r.ok){
-    console.error("GitHub PUT error:", r.status, await r.text());
+
+  if (!r.ok) {
+    const txt = await r.text().catch(()=> "");
+    console.error("GitHub PUT error:", r.status, txt);
+    // Opcional: muestra un toast para depurar en el tel.
+    showToast(`⛔ Error GitHub ${r.status}`, "danger", 2500);
     throw new Error(`GitHub PUT ${r.status}`);
   }
 }
 
-// === Utils ===
+/* ============== Utils generales ============== */
 function showToast(msg,type="success",ms=1600){
   const t=document.getElementById("toast");
   t.textContent=msg;
@@ -66,7 +123,7 @@ async function fetchJSON(url){try{const r=await fetch(url,{cache:"no-store"});if
 function saveLocal(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function loadLocal(k){try{const s=localStorage.getItem(k);return s?JSON.parse(s):[]}catch{return []}}
 
-// preferir local; si está vacío, leer del repo
+// preferir local; si está vacío, leer del repo (sirve para Android/iPhone nuevos)
 async function loadArr(key, url){
   const local = loadLocal(key);
   if(Array.isArray(local) && local.length) return local;
@@ -82,7 +139,7 @@ function renderTable(el, arr, columns){
     "<tbody>" + arr.map(r=>"<tr>"+cols.map(c=>`<td>${r[c] ?? ""}</td>`).join("")+"</tr>").join("") + "</tbody>";
 }
 
-// === Inventarios ===
+/* ============== Inventarios ============== */
 async function cargarInventarioEmpresa(){ const local=loadLocal("INVENTARIO_JSON"); if(local?.length) return local; return await fetchJSON("data/INVENTARIO.json"); }
 async function cargarInventarioRauda(){ const local=loadLocal("INVENTARIO_RAUDA_JSON"); if(local?.length) return local; return await fetchJSON("data/INVENTARIO_RAUDA.json"); }
 const buscarEmp = n => INVENTARIO.find(p => (p.nombre||"").toLowerCase()===(n||"").toLowerCase());
@@ -109,11 +166,11 @@ async function descStockRau(nombre,cant){
   return true;
 }
 
-// === Columnas fijas (EMPRESA)
+/* ============== Columnas fijas ============== */
 const COLS_EMPRESA = ["Fecha","Producto","Cantidad","Costo Envío","Total Vendido LPS","Descuento","Impuesto","Ganancia LPS"];
 const COLS_RAUDA   = ["Fecha","Producto","Cantidad","Inversión LPS","Vendido LPS","Descuento","Impuesto","Ganancia LPS","Descripción","Comentario"];
 
-// === Init ===
+/* ============== Init ============== */
 window.addEventListener("DOMContentLoaded", async ()=>{
   // Inventarios
   INVENTARIO = await cargarInventarioEmpresa();
@@ -146,7 +203,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("prodRauda")?.addEventListener("change", updateInvRauda);
   document.getElementById("cantRauda")?.addEventListener("input", updateInvRauda);
 
-  // Cargar registros (local -> si vacío, repo)
+  // Cargar registros (local -> si vacío, repo) para que en móviles se vea
   VENTAS_EMPRESA = await loadArr("VENTAS_EMPRESA", "data/VENTAS_EMPRESA.json");
   ENVIOS_MOTO    = await loadArr("ENVIOS_MOTO",   "data/ENVIOS_MOTO.json");
   ENVIOS_CAEX    = await loadArr("ENVIOS_CAEX",   "data/ENVIOS_CAEX.json");
