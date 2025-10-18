@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "nombre": "Pasamontañas",
+    "cantidad": 100,
+    "costo": 25,
+    "venta": 101
+  }
+]
