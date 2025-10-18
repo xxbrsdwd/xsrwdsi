@@ -46,5 +46,11 @@
     "cantidad": 100,
     "costo": 1,
     "venta": 100
+  },
+  {
+    "nombre": "popo hipergrande",
+    "cantidad": 100,
+    "costo": 1,
+    "venta": 100
   }
 ]
