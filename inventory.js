@@ -1,96 +1,54 @@
-/* =========================
-   SYNC GitHub (sin guardar token)
-   ========================= */
+/* =====================================================
+   INVENTARIO - EMPRESA + RAUDA (GitHub Pages puro)
+   ===================================================== */
 
-// Claves de almacenamiento
-const LS_META_KEY = "GH_SYNC_META";          // owner, repo, branch, path, autoCommit (sin token)
-const SS_TOKEN_KEY = "GH_TOKEN_SESSION";     // token solo en sessionStorage (se borra al cerrar)
+let INV_EMPRESA = [];
+let INV_RAUDA   = [];
 
-// Cargar meta (sin token)
-function loadGhMeta(){
-  try { return JSON.parse(localStorage.getItem(LS_META_KEY) || "{}"); }
-  catch { return {}; }
-}
+/* ============== Config GitHub (meta en LS, token en SS) ============== */
+const LS_META_KEY = "GH_SYNC_META";       // { owner, repo, branch, path, autoCommit }
+const SS_TOKEN_KEY = "GH_TOKEN_SESSION";  // token (solo sesión)
+const LEGACY_KEY   = "GH_SYNC_CFG";       // compat (antiguo)
 
-// Guardar meta (sin token)
-function saveGhMeta(meta){
-  localStorage.setItem(LS_META_KEY, JSON.stringify(meta || {}));
-}
+function loadGhMeta(){ try{ return JSON.parse(localStorage.getItem(LS_META_KEY)||"{}"); }catch{ return {}; } }
+function loadGhTokenSession(){ return sessionStorage.getItem(SS_TOKEN_KEY) || null; }
+function loadLegacyCfg(){ try{ return JSON.parse(localStorage.getItem(LEGACY_KEY)||"{}"); }catch{ return {}; } }
 
-// Guardar token SOLO en sessionStorage
-function saveGhTokenSession(token){
-  if (token) sessionStorage.setItem(SS_TOKEN_KEY, token);
-  else sessionStorage.removeItem(SS_TOKEN_KEY);
-}
-
-// Leer token de sessionStorage
-function loadGhTokenSession(){
-  return sessionStorage.getItem(SS_TOKEN_KEY) || "";
-}
-
-// Config unificada para usar en commits (meta + token de sesión)
-function currentGhCfg(){
+function loadGhCfg(){
   const meta = loadGhMeta();
-  const token = loadGhTokenSession();
+  const token = loadGhTokenSession() || (loadLegacyCfg().token || null);
+
   return {
-    owner: meta.owner || "",
-    repo: meta.repo || "",
-    branch: meta.branch || "main",
-    path: meta.path || "data/INVENTARIO.json",
+    owner:  (meta.owner  || "xxbrsdwd").trim(),
+    repo:   (meta.repo   || "xsrwdsi").trim(),
+    branch: (meta.branch || "main").trim(),
+    // path de EMPRESA (el de RAUDA lo fijo abajo)
+    path:   (meta.path   || "data/INVENTARIO.json").trim(),
     autoCommit: !!meta.autoCommit,
     token: token || null
   };
 }
 
-// ACTUALIZA el helper global usado por el resto del código
-function loadGhCfg(){ return currentGhCfg(); }
+function encodePathForGithub(p){ return (p||"").split("/").map(encodeURIComponent).join("/"); }
+function b64(s){ return btoa(unescape(encodeURIComponent(s))); }
 
-// Prefill del modal SYNC sin token
-function fillSyncModal(){
-  const meta = loadGhMeta();
-  const form = document.getElementById("formSync");
-  if (!form) return;
-
-  form.owner.value  = meta.owner  ?? "";
-  form.repo.value   = meta.repo   ?? "";
-  form.branch.value = meta.branch ?? "main";
-  form.path.value   = meta.path   ?? "data/INVENTARIO.json";
-  document.getElementById("autoCommit").checked = !!meta.autoCommit;
-
-  // Token SIEMPRE vacío (por seguridad)
-  form.token.value = "";
-}
-
-// Test a la API de contenidos de GitHub
-async function testGhConnection(owner, repo, branch, path, token){
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`;
+/* ============== GitHub API helpers ============== */
+async function ghGetSha(path){
+  const {owner,repo,branch,token} = loadGhCfg();
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodePathForGithub(path)}?ref=${branch}`;
   const headers = {"Accept":"application/vnd.github+json"};
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const r = await fetch(url, {headers});
-  return r;
-}
-
-// PUT a contenidos (solo manda sha si existe)
-function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
-
-async function ghGetSha(owner,repo,branch,path,token){
-  const u = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`;
-  const h = {"Accept":"application/vnd.github+json"};
-  if (token) h["Authorization"] = `Bearer ${token}`;
-  const r = await fetch(u,{headers:h});
-  if (r.status === 200){
-    const j = await r.json();
-    return j.sha || null;
-  }
+  const r = await fetch(url,{headers});
+  if (r.status===200){ const j=await r.json(); return j.sha||null; }
   return null;
 }
-
-async function ghPutFileRaw({owner,repo,branch,token,path,content,msg}){
-  if (!token) throw new Error("No hay token para subir.");
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
-  const sha = await ghGetSha(owner,repo,branch,path,token);
+async function ghPutFile(path, content, msg="Auto-commit inventario"){
+  const {owner,repo,branch,token,autoCommit} = loadGhCfg();
+  if (!token || !autoCommit) return;
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodePathForGithub(path)}`;
+  const sha = await ghGetSha(path).catch(()=>null);
   const body = {
-    message: msg || "Auto-commit",
+    message: msg,
     branch,
     content: b64(JSON.stringify(content,null,2)),
     ...(sha ? {sha} : {})
@@ -99,115 +57,145 @@ async function ghPutFileRaw({owner,repo,branch,token,path,content,msg}){
     method:"PUT",
     headers:{
       "Accept":"application/vnd.github+json",
-      "Authorization":`Bearer ${token}`,
+      "Authorization": `Bearer ${token}`,
       "Content-Type":"application/json"
     },
     body: JSON.stringify(body)
   });
   if(!r.ok){
-    const txt = await r.text();
-    throw new Error(`PUT ${r.status}: ${txt}`);
+    const t = await r.text().catch(()=> "");
+    console.error("GitHub PUT error:", r.status, t);
+    showToast(`⛔ Error GitHub ${r.status}`, "danger", 2500);
   }
 }
 
-// ------------ Bind de UI Sync ------------
-window.addEventListener("DOMContentLoaded", ()=>{
-  const syncModal = document.getElementById("syncModal");
-  const formSync  = document.getElementById("formSync");
-  const btnTest   = document.getElementById("btnTestGH");
-  const btnPush   = document.getElementById("btnPushNow");
-  const statusEl  = document.getElementById("syncStatus");
+/* ============== Utils ============== */
+function showToast(msg,type="info",ms=1500){
+  const el = document.getElementById("toast");
+  if(!el) return;
+  el.textContent = msg;
+  el.className = `alert alert-${type}`;
+  el.classList.remove("d-none");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>el.classList.add("d-none"), ms);
+}
+async function fetchJSON(u){ try{ const r=await fetch(u,{cache:"no-store"}); if(r.ok) return r.json(); }catch{} return []; }
+function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
+function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function loadLS(k){ try{ const s=localStorage.getItem(k); return s?JSON.parse(s):[]; }catch{ return []; } }
 
-  // Rellena TODO MENOS TOKEN al abrir
-  if (syncModal){
-    syncModal.addEventListener("show.bs.modal", fillSyncModal);
-  } else {
-    // si no hay modal, igual pre-carga meta
-    fillSyncModal();
+/* ============== Carga preferente local -> remoto ============== */
+async function loadInvEmpresa(){ const l = loadLS("INVENTARIO_JSON");  return (Array.isArray(l)&&l.length)?l:await fetchJSON("data/INVENTARIO.json"); }
+async function loadInvRauda(){   const l = loadLS("INVENTARIO_RAUDA_JSON"); return (Array.isArray(l)&&l.length)?l:await fetchJSON("data/INVENTARIO_RAUDA.json"); }
+
+/* ============== Render ============== */
+const COLS = ["#","Producto","Cantidad","Costo LPS","Venta LPS","Acciones"];
+
+function renderInv(tableId, arr){
+  const el = document.getElementById(tableId);
+  if(!el) return;
+  if(!Array.isArray(arr)) arr = [];
+  if(!arr.length){
+    el.innerHTML = `
+      <thead><tr>${COLS.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
+      <tbody><tr><td colspan="6" class="text-muted">Sin registros</td></tr></tbody>`;
+    return;
+  }
+  el.innerHTML = `
+    <thead><tr>${COLS.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
+    <tbody>
+      ${arr.map((p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${p.nombre||""}</td>
+          <td>${p.cantidad??0}</td>
+          <td>L ${toNum(p.costo).toFixed(2)}</td>
+          <td>L ${toNum(p.venta).toFixed(2)}</td>
+          <td></td>
+        </tr>`).join("")}
+    </tbody>`;
+}
+
+/* ============== Guardar por rubro ============== */
+async function persistInventario(rubro){
+  if(rubro==="RAUDA"){
+    saveLS("INVENTARIO_RAUDA_JSON", INV_RAUDA);
+    await ghPutFile("data/INVENTARIO_RAUDA.json", INV_RAUDA, "Actualizar inventario RAUDA");
+  }else{
+    saveLS("INVENTARIO_JSON", INV_EMPRESA);
+    const {path} = loadGhCfg(); // path de EMPRESA desde el modal
+    await ghPutFile(path || "data/INVENTARIO.json", INV_EMPRESA, "Actualizar inventario EMPRESA");
+  }
+}
+
+/* ============== Init ============== */
+window.addEventListener("DOMContentLoaded", async ()=>{
+  // Carga inicial (si no hay local, lee del repo)
+  INV_EMPRESA = await loadInvEmpresa();
+  INV_RAUDA   = await loadInvRauda();
+
+  // Render inicial
+  renderInv("tablaInventario",      INV_EMPRESA);
+  renderInv("tablaInventarioRauda", INV_RAUDA);
+
+  // --- Formulario Agregar ---
+  const form = document.getElementById("formAgregar");
+  if(form){
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const nombre   = (document.getElementById("nombre")?.value||"").trim();
+      const cantidad = toNum(document.getElementById("cantidad")?.value||0);
+      const costo    = toNum(document.getElementById("costo")?.value||0);
+      const venta    = toNum(document.getElementById("venta")?.value||0);
+      const rubro    = (document.getElementById("rubroInventario")?.value||"EMPRESA").toUpperCase();
+
+      if(!nombre) return showToast("Escribe el nombre del producto","warning");
+      const item = { nombre, cantidad, costo, venta };
+
+      if(rubro==="RAUDA"){
+        INV_RAUDA.push(item);
+        renderInv("tablaInventarioRauda", INV_RAUDA);
+      }else{
+        INV_EMPRESA.push(item);
+        renderInv("tablaInventario", INV_EMPRESA);
+      }
+      await persistInventario(rubro);
+      showToast("✅ Producto agregado","success");
+      form.reset();
+    });
   }
 
-  // Guardar ajustes (sin token a LS; token a session)
-  formSync?.addEventListener("submit", (e)=>{
-    e.preventDefault();
-    const meta = {
-      owner:  formSync.owner.value.trim()  || "xxbrsdwd",
-      repo:   formSync.repo.value.trim()   || "xsrwdsi",
-      branch: formSync.branch.value.trim() || "main",
-      path:   formSync.path.value.trim()   || "data/INVENTARIO.json",
-      autoCommit: document.getElementById("autoCommit").checked
-    };
-    saveGhMeta(meta);
-
-    const token = formSync.token.value.trim();
-    if (token) saveGhTokenSession(token);  // sesión solamente
-
-    statusEl.innerHTML = `<span class="text-success">✅ Ajustes guardados (token no se guarda en disco).</span>`;
+  // --- Exportar JSON (exporta ambos inventarios en un ZIP lógico simple: 2 descargas) ---
+  document.getElementById("btnExportJSON")?.addEventListener("click", ()=>{
+    // Descarga EMPRESA
+    const a1=document.createElement("a");
+    a1.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(INV_EMPRESA,null,2));
+    a1.download="INVENTARIO_EMPRESA.json";
+    a1.click();
+    // Descarga RAUDA
+    const a2=document.createElement("a");
+    a2.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(INV_RAUDA,null,2));
+    a2.download="INVENTARIO_RAUDA.json";
+    a2.click();
   });
 
-  // Probar conexión
-  btnTest?.addEventListener("click", async ()=>{
-    statusEl.textContent = "Probando conexión...";
-    const meta = loadGhMeta();
-    const tok  = document.getElementById("formSync").token.value.trim() || loadGhTokenSession();
-
+  // --- Importar JSON (importa al rubro seleccionado) ---
+  document.getElementById("importFile")?.addEventListener("change", async (ev)=>{
+    const file = ev.target.files?.[0];
+    if(!file) return;
     try{
-      const r = await testGhConnection(
-        meta.owner || "xxbrsdwd",
-        meta.repo  || "xsrwdsi",
-        meta.branch|| "main",
-        meta.path  || "data/INVENTARIO.json",
-        tok || null
-      );
-      if (r.status === 200){
-        statusEl.innerHTML = `<span class="text-success">✅ OK. Archivo existe y es accesible.</span>`;
-      } else if (r.status === 404){
-        statusEl.innerHTML = `<span class="text-warning">⚠️ Repo/archivo no encontrado (se creará al primer guardado si el token tiene permisos).</span>`;
-      } else if (r.status === 403 || r.status === 401){
-        statusEl.innerHTML = `<span class="text-danger">⛔ Token inválido o sin permisos (Contents: Read & Write).</span>`;
-      } else {
-        statusEl.innerHTML = `<span class="text-danger">⛔ Error ${r.status} al probar. Revisa owner/repo/branch/path.</span>`;
-      }
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const rubro = (document.getElementById("rubroInventario")?.value||"EMPRESA").toUpperCase();
+      if(!Array.isArray(data)) throw new Error("JSON inválido");
+      if(rubro==="RAUDA"){ INV_RAUDA = data; renderInv("tablaInventarioRauda", data); }
+      else{ INV_EMPRESA = data; renderInv("tablaInventario", data); }
+      await persistInventario(rubro);
+      showToast("✅ Inventario importado","success");
     }catch(err){
-      statusEl.innerHTML = `<span class="text-danger">⛔ Error de red: ${err.message}</span>`;
-    }
-  });
-
-  // Subir ahora (inventario actual)
-  btnPush?.addEventListener("click", async ()=>{
-    statusEl.textContent = "Subiendo inventario...";
-    const cfg = currentGhCfg();
-    if (!cfg.token){
-      statusEl.innerHTML = `<span class="text-danger">⛔ Ingresa el token en el campo Token (no se guarda en disco).</span>`;
-      return;
-    }
-    try{
-      // EMPRESA
-      const invEmp = JSON.parse(localStorage.getItem("INVENTARIO_JSON") || "[]");
-      await ghPutFileRaw({
-        owner: cfg.owner || "xxbrsdwd",
-        repo: cfg.repo || "xsrwdsi",
-        branch: cfg.branch || "main",
-        token: cfg.token,
-        path: cfg.path || "data/INVENTARIO.json",
-        content: Array.isArray(invEmp) ? invEmp : [],
-        msg: "Subida manual desde Sync (EMPRESA)"
-      });
-
-      // RAUDA (opcional: descomenta si quieres subir también)
-      // const invRau = JSON.parse(localStorage.getItem("INVENTARIO_RAUDA_JSON") || "[]");
-      // await ghPutFileRaw({
-      //   owner: cfg.owner || "xxbrsdwd",
-      //   repo: cfg.repo || "xsrwdsi",
-      //   branch: cfg.branch || "main",
-      //   token: cfg.token,
-      //   path: "data/INVENTARIO_RAUDA.json",
-      //   content: Array.isArray(invRau) ? invRau : [],
-      //   msg: "Subida manual desde Sync (RAUDA)"
-      // });
-
-      statusEl.innerHTML = `<span class="text-success">✅ Inventario subido al repo.</span>`;
-    }catch(err){
-      statusEl.innerHTML = `<span class="text-danger">⛔ Error subiendo: ${err.message}</span>`;
+      showToast("⛔ JSON inválido","danger");
+    }finally{
+      ev.target.value="";
     }
   });
 });
