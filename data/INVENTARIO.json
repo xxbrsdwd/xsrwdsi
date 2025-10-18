@@ -4,5 +4,11 @@
     "cantidad": 100,
     "costo": 25,
     "venta": 101
+  },
+  {
+    "nombre": "Foco camara",
+    "cantidad": 100,
+    "costo": 100,
+    "venta": 180
   }
 ]
