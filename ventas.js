@@ -1,5 +1,5 @@
 /* =====================================================
-   Ventas - EMPRESA + RAUDA (GitHub Pages puro) - FIX
+   Ventas - EMPRESA + RAUDA (GitHub Pages puro) - PATH/STOCK FIX
    ===================================================== */
 
 let INVENTARIO = [];     // EMPRESA
@@ -93,11 +93,13 @@ async function fetchJSON(url){try{const r=await fetch(url,{cache:"no-store"});if
 function saveLocal(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function loadLocal(k){try{const s=localStorage.getItem(k);return s?JSON.parse(s):[]}catch{return []}}
 
-// preferir local; si está vacío, leer del repo
-async function loadArr(key, url){
-  const local = loadLocal(key);
-  if(Array.isArray(local) && local.length) return local;
-  return await fetchJSON(url);
+// preferir repo; si falla, local
+async function loadArrPreferRepo(key, url){
+  try{
+    const r=await fetch(url,{cache:"no-store"});
+    if(r.ok){ const j=await r.json(); if(Array.isArray(j)){ saveLocal(key,j); return j; } }
+  }catch{}
+  return loadLocal(key);
 }
 
 // Render genérico con orden de columnas fijo (si se pasa)
@@ -122,7 +124,10 @@ async function descStockEmp(nombre,cant){
   if(cant>disp){ showToast(`Stock insuficiente EMPRESA (disp: ${disp})`,"danger"); return false; }
   INVENTARIO[i].cantidad = disp - cant;
   saveLocal("INVENTARIO_JSON", INVENTARIO);
-  try{ await ghPutFile("data/INVENTARIO.json", INVENTARIO, "Actualizar stock EMPRESA"); }catch{}
+  try{
+    const cfg = loadGhCfg();
+    await ghPutFile(cfg.path || "data/INVENTARIO.json", INVENTARIO, "Actualizar stock EMPRESA");
+  }catch{}
   return true;
 }
 async function descStockRau(nombre,cant){
@@ -173,11 +178,11 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("prodRauda")?.addEventListener("change", updateInvRauda);
   document.getElementById("cantRauda")?.addEventListener("input", updateInvRauda);
 
-  // Cargar registros (local -> si vacío, repo) para que en móviles se vea
-  VENTAS_EMPRESA = await loadArr("VENTAS_EMPRESA", "data/VENTAS_EMPRESA.json");
-  ENVIOS_MOTO    = await loadArr("ENVIOS_MOTO",   "data/ENVIOS_MOTO.json");
-  ENVIOS_CAEX    = await loadArr("ENVIOS_CAEX",   "data/ENVIOS_CAEX.json");
-  VENTAS_RAUDA   = await loadArr("VENTAS_RAUDA",  "data/VENTAS_RAUDA.json");
+  // Cargar registros (prefer repo; si falla, local)
+  VENTAS_EMPRESA = await loadArrPreferRepo("VENTAS_EMPRESA", "data/VENTAS_EMPRESA.json");
+  ENVIOS_MOTO    = await loadArrPreferRepo("ENVIOS_MOTO",    "data/ENVIOS_MOTO.json");
+  ENVIOS_CAEX    = await loadArrPreferRepo("ENVIOS_CAEX",    "data/ENVIOS_CAEX.json");
+  VENTAS_RAUDA   = await loadArrPreferRepo("VENTAS_RAUDA",   "data/VENTAS_RAUDA.json");
 
   // Render
   renderTable(document.getElementById("tablaVentaDia"), VENTAS_EMPRESA, COLS_EMPRESA);
@@ -244,7 +249,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const nombre = prodEnvioCaex.value;
     const cant   = toNum(cantEnvioCaex.value);
     const envio  = toNum(costoEnvioCaex.value)||0;
-    const desc   = toNum(descVentaDia.value)||0;
+    const desc   = toNum(descEnvioCaex.value)||0;  // FIX id correcto
     const imp    = (impEnvioCaex.value||"0").trim();
     const p = buscarEmp(nombre);
     if(!p) return showToast("Producto no encontrado","danger");
@@ -277,16 +282,22 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     if(!nombre) return showToast("Selecciona un producto RAUDA","danger");
     if(cant<=0)  return showToast("Cantidad inválida","danger");
 
-    if(!(await descStockRau(nombre,cant))) return;
+    const i = INV_RAUDA.findIndex(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
+    if(i<0){ showToast("Producto no encontrado (RAUDA)","danger"); return; }
+    const disp = toNum(INV_RAUDA[i].cantidad);
+    if(cant>disp){ showToast(`Stock insuficiente RAUDA (disp: ${disp})`,"danger"); return; }
+    INV_RAUDA[i].cantidad = disp - cant;
+    saveLocal("INVENTARIO_RAUDA_JSON", INV_RAUDA);
+    try{ await ghPutFile("data/INVENTARIO_RAUDA.json", INV_RAUDA, "Actualizar stock RAUDA"); }catch{}
 
     const gan = (vend - inv) - desc;
     const reg = {"Fecha":fechaHora(),"Producto":nombre,"Cantidad":cant,"Inversión LPS":inv.toFixed(2),"Vendido LPS":vend.toFixed(2),"Descuento":desc,"Impuesto":imp,"Ganancia LPS":gan.toFixed(2),"Descripción":descTxt,"Comentario":com};
 
     VENTAS_RAUDA.push(reg);
     saveLocal("VENTAS_RAUDA", VENTAS_RAUDA);
-    renderTable(tablaRauda, VENTAS_RAUDA, ["Fecha","Producto","Cantidad","Inversión LPS","Vendido LPS","Descuento","Impuesto","Ganancia LPS","Descripción","Comentario"]);
+    renderTable(tablaRauda, VENTAS_RAUDA, COLS_RAUDA);
     showToast("✅ Venta RAUDA registrada");
     try{ await ghPutFile("data/VENTAS_RAUDA.json", VENTAS_RAUDA, "Venta RAUDA"); }catch{}
-    e.target.reset(); document.getElementById("cantRauda").value="1"; document.getElementById("impRauda").value="0"; updateInvRauda();
+    e.target.reset(); document.getElementById("cantRauda").value="1"; document.getElementById("impRauda").value="0";
   });
 });

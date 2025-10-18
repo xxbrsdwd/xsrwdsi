@@ -1,5 +1,5 @@
 /* =====================================================
-   INVENTARIO - EMPRESA + RAUDA (GitHub Pages puro)
+   INVENTARIO - EMPRESA + RAUDA (GitHub Pages puro) [PATH FIX]
    ===================================================== */
 
 let INV_EMPRESA = [];
@@ -31,20 +31,21 @@ function loadGhCfg(){
 
 function encodePathForGithub(p){ return (p||"").split("/").map(encodeURIComponent).join("/"); }
 function b64(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64ToUtf8(b64){ try{ return decodeURIComponent(escape(atob(b64))); }catch{ return atob(b64); } }
 
 async function ghGetSha(path){
   const {owner,repo,branch,token} = loadGhCfg();
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodePathForGithub(path)}?ref=${branch}`;
+  const url = `https://api.github.com/repos/${owner}/{repo}/contents/${encodePathForGithub(path)}?ref=${branch}`.replace("{repo}", repo)
   const headers = {"Accept":"application/vnd.github+json"};
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  const r = await fetch(url,{headers});
+  const r = await fetch(url,{headers,cache:"no-store"});
   if (r.status===200){ const j=await r.json(); return j.sha||null; }
   return null;
 }
 async function ghPutFile(path, content, msg="Auto-commit inventario"){
   const {owner,repo,branch,token,autoCommit} = loadGhCfg();
   if (!token || !autoCommit) return;
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodePathForGithub(path)}`;
+  const url = `https://api.github.com/repos/${owner}/{repo}/contents/${encodePathForGithub(path)}`.replace("{repo}", repo)
   const sha = await ghGetSha(path).catch(()=>null);
   const body = {
     message: msg,
@@ -79,13 +80,41 @@ function showToast(msg,type="info",ms=1500){
   showToast._t = setTimeout(()=>el.classList.add("d-none"), ms);
 }
 async function fetchJSON(u){ try{ const r=await fetch(u,{cache:"no-store"}); if(r.ok) return r.json(); }catch{} return []; }
+async function fetchGHJSON(path){
+  const {owner,repo,branch,token} = loadGhCfg();
+  if(!owner||!repo||!branch||!path) return null;
+  const url = `https://api.github.com/repos/${owner}/{repo}/contents/${encodePathForGithub(path)}?ref=${branch}`.replace("{repo}", repo)
+  const headers = {"Accept":"application/vnd.github+json"};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  try{
+    const r = await fetch(url,{headers,cache:"no-store"});
+    if(!r.ok) return null;
+    const j = await r.json();
+    if(j && j.content){
+      const raw = b64ToUtf8(j.content);
+      return JSON.parse(raw);
+    }
+  }catch{}
+  return null;
+}
 function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
 function saveLS(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 function loadLS(k){ try{ const s=localStorage.getItem(k); return s?JSON.parse(s):[]; }catch{ return []; } }
 
-/* ===== Preferir local -> remoto ===== */
-async function loadInvEmpresa(){ const l = loadLS("INVENTARIO_JSON");  return (Array.isArray(l)&&l.length)?l:await fetchJSON("data/INVENTARIO.json"); }
-async function loadInvRauda(){   const l = loadLS("INVENTARIO_RAUDA_JSON"); return (Array.isArray(l)&&l.length)?l:await fetchJSON("data/INVENTARIO_RAUDA.json"); }
+/* ===== Preferir GH path -> sitio -> local ===== */
+async function loadInvEmpresa(){
+  const cfg = loadGhCfg();
+  const fromGH = await fetchGHJSON(cfg.path || "data/INVENTARIO.json");
+  if (Array.isArray(fromGH)) { saveLS("INVENTARIO_JSON", fromGH); return fromGH; }
+  const site = await fetchJSON("data/INVENTARIO.json");
+  if (Array.isArray(site) && site.length) { saveLS("INVENTARIO_JSON", site); return site; }
+  return loadLS("INVENTARIO_JSON");
+}
+async function loadInvRauda(){
+  const site = await fetchJSON("data/INVENTARIO_RAUDA.json");
+  if (Array.isArray(site) && site.length) { saveLS("INVENTARIO_RAUDA_JSON", site); return site; }
+  return loadLS("INVENTARIO_RAUDA_JSON");
+}
 
 /* ===== Render ===== */
 const COLS = ["#","Producto","Cantidad","Costo LPS","Venta LPS","Acciones"];
@@ -138,7 +167,7 @@ function fillSyncModal(){
 }
 
 async function testGh(owner,repo,branch,path,token){
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodePathForGithub(path)}?ref=${branch}`;
+  const url = `https://api.github.com/repos/${owner}/{repo}/contents/${encodePathForGithub(path)}?ref=${branch}`.replace("{repo}", repo)
   const h = {"Accept":"application/vnd.github+json"};
   if (token) h["Authorization"] = `Bearer ${token}`;
   return await fetch(url, {headers:h});
@@ -197,14 +226,13 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   });
 
   // --- Sync modal ---
-  const syncModal = document.getElementById("syncModal");
   const formSync  = document.getElementById("formSync");
   const btnTest   = document.getElementById("btnTestGH");
   const btnPush   = document.getElementById("btnPushNow");
   const statusEl  = document.getElementById("syncStatus");
 
-  syncModal?.addEventListener("show.bs.modal", fillSyncModal);
-  fillSyncModal(); // por si está visible en SSR
+  document.getElementById("syncModal")?.addEventListener("show.bs.modal", fillSyncModal);
+  fillSyncModal();
 
   formSync?.addEventListener("submit", (e)=>{
     e.preventDefault();
@@ -217,16 +245,14 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     };
     saveGhMeta(meta);
     const tok = formSync.token.value.trim();
-    if (tok) saveGhTokenSession(tok); // si lo escribes, se guarda en sesión
+    if (tok) saveGhTokenSession(tok);
     statusEl.innerHTML = `<span class="text-success">✅ Ajustes guardados. El token queda solo en esta sesión.</span>`;
   });
 
-  document.getElementById("btnTestGH")?.addEventListener("click", async ()=>{
-    const formSync = document.getElementById("formSync");
-    const statusEl  = document.getElementById("syncStatus");
+  btnTest?.addEventListener("click", async ()=>{
     statusEl.textContent = "Probando conexión...";
     const meta = loadGhMeta();
-    const tok  = formSync.token.value.trim() || loadGhTokenSession();
+    const tok  = document.getElementById("formSync").token.value.trim() || loadGhTokenSession();
     try{
       const r = await testGh(meta.owner||"xxbrsdwd", meta.repo||"xsrwdsi", meta.branch||"main", meta.path||"data/INVENTARIO.json", tok||null);
       if (r.status===200)      statusEl.innerHTML = `<span class="text-success">✅ OK. Archivo existe.</span>`;
@@ -238,25 +264,16 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     }
   });
 
-  document.getElementById("btnPushNow")?.addEventListener("click", async ()=>{
-    const statusEl  = document.getElementById("syncStatus");
+  btnPush?.addEventListener("click", async ()=>{
     statusEl.textContent = "Subiendo inventarios...";
     const cfg = loadGhCfg();
     if(!cfg.token){ statusEl.innerHTML = `<span class="text-danger">⛔ Ingresa un token.</span>`; return; }
     try{
-      await ghPutFile(cfg.path || "data/INVENTARIO.json", INVENTARIO, "Subida manual EMPRESA");
+      await ghPutFile(cfg.path || "data/INVENTARIO.json", INV_EMPRESA, "Subida manual EMPRESA");
       await ghPutFile("data/INVENTARIO_RAUDA.json", INV_RAUDA, "Subida manual RAUDA");
       statusEl.innerHTML = `<span class="text-success">✅ Subido al repo.</span>`;
     }catch(err){
       statusEl.innerHTML = `<span class="text-danger">⛔ ${err.message}</span>`;
     }
   });
-
-  // helper test for ventas
-  async function testGh(owner,repo,branch,path,token){
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodePathForGithub(path)}?ref=${branch}`;
-    const h = {"Accept":"application/vnd.github+json"};
-    if (token) h["Authorization"] = `Bearer ${token}`;
-    return await fetch(url, {headers:h});
-  }
 });
