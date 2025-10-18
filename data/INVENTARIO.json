@@ -1,7 +1,7 @@
 [
   {
     "nombre": "Pasamontañas",
-    "cantidad": 100,
+    "cantidad": 92,
     "costo": 25,
     "venta": 100
   },
@@ -22,5 +22,11 @@
     "cantidad": 50,
     "costo": 35,
     "venta": 500
+  },
+  {
+    "nombre": "asdasd CACA",
+    "costo": 1,
+    "venta": 10,
+    "cantidad": 1
   }
 ]
