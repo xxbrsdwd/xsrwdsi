@@ -1,5 +1,5 @@
 /* =====================================================
-   Módulo de Ventas - Sistema Brayan Raudales (orden fijo + fix Rauda)
+   Ventas - Descuenta stock + columnas ordenadas
    ===================================================== */
 
 let INVENTARIO = [];
@@ -8,15 +8,15 @@ let ENVIOS_MOTO = [];
 let ENVIOS_CAEX = [];
 let VENTAS_RAUDA = [];
 
-// === Configuración GitHub (reutiliza la del inventario) ===
+// === Config GitHub (igual que inventario) ===
 function loadGhCfg() {
   try { const s = localStorage.getItem("GH_SYNC_CFG"); return s ? JSON.parse(s) : {}; }
   catch { return {}; }
 }
 const GH_CFG = loadGhCfg();
 
-// === Utilidades ===
-function showToast(msg, type="success", ms=1500) {
+// === Utils ===
+function showToast(msg, type="success", ms=1800) {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.className = `alert alert-${type}`;
@@ -35,7 +35,7 @@ function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
 
 // === Auto-commit GitHub (opcional) ===
-async function ghPutFile(path,content,msg="Auto-commit ventas"){
+async function ghPutFile(path,content,msg="Auto-commit"){
   if(!GH_CFG.token || !GH_CFG.autoCommit) return;
   const {owner,repo,branch,token}=GH_CFG;
   let sha=null;
@@ -56,7 +56,7 @@ async function ghPutFile(path,content,msg="Auto-commit ventas"){
   });
 }
 
-// === ORDEN FIJO de columnas para EMPRESA ===
+// === Orden fijo (EMPRESA) ===
 const COLS_EMPRESA = [
   "Fecha","Producto","Cantidad","Costo Envío","Total Vendido LPS","Descuento","Impuesto","Ganancia LPS"
 ];
@@ -75,111 +75,93 @@ function renderAuto(tableEl, arr){
     "<tbody>"+arr.map(r=>"<tr>"+cols.map(c=>`<td>${r[c]}</td>`).join("")+"</tr>").join("")+"</tbody>";
 }
 
-// === Cargar inventario ===
+// === Inventario ===
 async function cargarInventario(){
   const local=loadLocal("INVENTARIO_JSON");
   if(local?.length) return local;
   return await fetchJSON("data/INVENTARIO.json");
 }
-const buscarProd = nombre => INVENTARIO.find(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase()) || {venta:0,costo:0};
+const buscarProd = nombre =>
+  INVENTARIO.find(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
 
-// === Migración (ajusta a esquema y ORDEN nuevos) ===
+async function descontarStock(nombre, cant){
+  const idx = INVENTARIO.findIndex(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase());
+  if(idx<0){ showToast("Producto no encontrado en inventario","danger"); return false; }
+  const disp = toNum(INVENTARIO[idx].cantidad);
+  if(cant>disp){ showToast(`Stock insuficiente (disponible: ${disp})`,"danger"); return false; }
+  INVENTARIO[idx].cantidad = disp - cant;
+  saveLocal("INVENTARIO_JSON", INVENTARIO);
+  await ghPutFile("data/INVENTARIO.json", INVENTARIO, "Actualizar stock tras venta");
+  return true;
+}
+
+// === Migración a esquema/orden nuevo (EMPRESA) ===
 function migEmpresa(arr){
   return arr.map(r=>{
     const nombre = r.Producto ?? r.producto ?? "";
     const cant   = toNum(r.Cantidad ?? r.Cant);
-    const prod   = buscarProd(nombre);
+    const prod   = buscarProd(nombre) || {venta:0,costo:0};
     const desc   = toNum(r.Descuento);
     const imp    = (r.Impuesto || "").toString();
-    const costoEnv = 0;                          // Ventas del día
-    const totalVend = toNum(prod.venta)*cant;    // sin envío
+    const totalVend = toNum(prod.venta)*cant;           // sin envío
     const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc;
-    return {
-      "Fecha": r.Fecha || fechaHora(),
-      "Producto": nombre,
-      "Cantidad": cant,
-      "Costo Envío": costoEnv,
-      "Total Vendido LPS": totalVend.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Ganancia LPS": gan.toFixed(2)
-    };
+    return {"Fecha": r.Fecha || fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": 0,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
   });
 }
 function migMoto(arr){
   return arr.map(r=>{
     const nombre = r.Producto ?? "";
     const cant   = toNum(r.Cantidad ?? r.Cant);
-    const prod   = buscarProd(nombre);
+    const prod   = buscarProd(nombre) || {venta:0,costo:0};
     const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
     const desc   = toNum(r.Descuento);
     const imp    = (r.Impuesto || "").toString();
-    const totalVend = (toNum(prod.venta)*cant) + envio;           // + envío moto
+    const totalVend = (toNum(prod.venta)*cant) + envio; // + envío moto
     const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc; // envío NO afecta ganancia
-    return {
-      "Fecha": r.Fecha || fechaHora(),
-      "Producto": nombre,
-      "Cantidad": cant,
-      "Costo Envío": envio,
-      "Total Vendido LPS": totalVend.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Ganancia LPS": gan.toFixed(2)
-    };
+    return {"Fecha": r.Fecha || fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
   });
 }
 function migCaex(arr){
   return arr.map(r=>{
     const nombre = r.Producto ?? "";
     const cant   = toNum(r.Cantidad ?? r.Cant);
-    const prod   = buscarProd(nombre);
+    const prod   = buscarProd(nombre) || {venta:0,costo:0};
     const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
     const desc   = toNum(r.Descuento);
     const imp    = (r.Impuesto || "").toString();
-    const totalVend = toNum(prod.venta)*cant;                       // Caex NO suma envío al total vendido
+    const totalVend = toNum(prod.venta)*cant;           // Caex NO suma envío
     const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - envio - desc;
-    return {
-      "Fecha": r.Fecha || fechaHora(),
-      "Producto": nombre,
-      "Cantidad": cant,
-      "Costo Envío": envio,
-      "Total Vendido LPS": totalVend.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Ganancia LPS": gan.toFixed(2)
-    };
+    return {"Fecha": r.Fecha || fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
   });
 }
 
-// === Inicialización ===
+// === Init ===
 window.addEventListener("DOMContentLoaded", async ()=>{
   INVENTARIO = await cargarInventario();
 
-  // llenar selects EMPRESA
+  // selects EMPRESA
   const prods = INVENTARIO.map(p=>p.nombre);
   ["prodVentaDia","prodEnvioMoto","prodEnvioCaex"].forEach(id=>{
     const s=document.getElementById(id);
     if(s) s.innerHTML="<option value=''>Seleccione...</option>"+prods.map(p=>`<option>${p}</option>`).join("");
   });
 
-  // cargar registros locales y migrar a ORDEN nuevo
+  // cargar + migrar
   VENTAS_EMPRESA = migEmpresa(loadLocal("VENTAS_EMPRESA"));
   ENVIOS_MOTO    = migMoto(loadLocal("ENVIOS_MOTO"));
   ENVIOS_CAEX    = migCaex(loadLocal("ENVIOS_CAEX"));
-  VENTAS_RAUDA   = loadLocal("VENTAS_RAUDA"); // Rauda mantiene su esquema
+  VENTAS_RAUDA   = loadLocal("VENTAS_RAUDA");
 
-  // Render inicial con orden fijo (EMPRESA) y auto (RAUDA)
   renderOrdered(tablaVentaDia, VENTAS_EMPRESA);
   renderOrdered(tablaEnvioMoto, ENVIOS_MOTO);
   renderOrdered(tablaEnvioCaex, ENVIOS_CAEX);
   renderAuto(tablaRauda, VENTAS_RAUDA);
 
-  // Guardar migración
   saveLocal("VENTAS_EMPRESA", VENTAS_EMPRESA);
   saveLocal("ENVIOS_MOTO", ENVIOS_MOTO);
   saveLocal("ENVIOS_CAEX", ENVIOS_CAEX);
 
-  // === Ventas del día ===
+  // Ventas del día
   formVentaDia.addEventListener("submit", async e=>{
     e.preventDefault();
     const nombre = prodVentaDia.value;
@@ -189,30 +171,22 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const prod   = buscarProd(nombre);
     if(!prod) return showToast("Producto no encontrado","danger");
 
-    const costoEnv  = 0;
-    const totalVend = Number(prod.venta)*cant;             // sin envío
+    // valida y descuenta stock
+    if(!(await descontarStock(nombre, cant))) return;
+
+    const totalVend = Number(prod.venta)*cant;
     const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - desc;
 
-    const reg = {
-      "Fecha": fechaHora(),
-      "Producto": nombre,
-      "Cantidad": cant,
-      "Costo Envío": costoEnv,
-      "Total Vendido LPS": totalVend.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Ganancia LPS": gan.toFixed(2)
-    };
+    const reg = {"Fecha": fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": 0,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
 
     VENTAS_EMPRESA.push(reg);
     saveLocal("VENTAS_EMPRESA", VENTAS_EMPRESA);
     renderOrdered(tablaVentaDia, VENTAS_EMPRESA);
-    showToast("✅ Venta registrada correctamente");
-    await ghPutFile("data/VENTAS_EMPRESA.json", VENTAS_EMPRESA);
-    e.target.reset();
+    showToast("✅ Venta registrada");
+    await ghPutFile("data/VENTAS_EMPRESA.json", VENTAS_EMPRESA, "Venta del día");
   });
 
-  // === Envíos Moto ===
+  // Envíos Moto
   formEnvioMoto.addEventListener("submit", async e=>{
     e.preventDefault();
     const nombre = prodEnvioMoto.value;
@@ -223,29 +197,21 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const prod   = buscarProd(nombre);
     if(!prod) return showToast("Producto no encontrado","danger");
 
-    const totalVend = (Number(prod.venta)*cant) + envio;   // + envío moto
+    if(!(await descontarStock(nombre, cant))) return;
+
+    const totalVend = (Number(prod.venta)*cant) + envio; // + envío moto
     const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - desc; // envío NO afecta ganancia
 
-    const reg = {
-      "Fecha": fechaHora(),
-      "Producto": nombre,
-      "Cantidad": cant,
-      "Costo Envío": envio,
-      "Total Vendido LPS": totalVend.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Ganancia LPS": gan.toFixed(2)
-    };
+    const reg = {"Fecha": fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
 
     ENVIOS_MOTO.push(reg);
     saveLocal("ENVIOS_MOTO", ENVIOS_MOTO);
     renderOrdered(tablaEnvioMoto, ENVIOS_MOTO);
     showToast("✅ Envío Moto registrado");
-    await ghPutFile("data/ENVIOS_MOTO.json", ENVIOS_MOTO);
-    e.target.reset();
+    await ghPutFile("data/ENVIOS_MOTO.json", ENVIOS_MOTO, "Envío moto");
   });
 
-  // === Envíos Caex ===
+  // Envíos Caex
   formEnvioCaex.addEventListener("submit", async e=>{
     e.preventDefault();
     const nombre = prodEnvioCaex.value;
@@ -256,56 +222,38 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const prod   = buscarProd(nombre);
     if(!prod) return showToast("Producto no encontrado","danger");
 
-    const totalVend = Number(prod.venta)*cant;             // Caex NO suma envío al total vendido
+    if(!(await descontarStock(nombre, cant))) return;
+
+    const totalVend = Number(prod.venta)*cant;           // Caex NO suma envío
     const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - envio - desc;
 
-    const reg = {
-      "Fecha": fechaHora(),
-      "Producto": nombre,
-      "Cantidad": cant,
-      "Costo Envío": envio,
-      "Total Vendido LPS": totalVend.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Ganancia LPS": gan.toFixed(2)
-    };
+    const reg = {"Fecha": fechaHora(),"Producto": nombre,"Cantidad": cant,"Costo Envío": envio,"Total Vendido LPS": totalVend.toFixed(2),"Descuento": desc,"Impuesto": imp,"Ganancia LPS": gan.toFixed(2)};
 
     ENVIOS_CAEX.push(reg);
     saveLocal("ENVIOS_CAEX", ENVIOS_CAEX);
     renderOrdered(tablaEnvioCaex, ENVIOS_CAEX);
     showToast("✅ Envío Caex registrado");
-    await ghPutFile("data/ENVIOS_CAEX.json", ENVIOS_CAEX);
-    e.target.reset();
+    await ghPutFile("data/ENVIOS_CAEX.json", ENVIOS_CAEX, "Envío caex");
   });
 
-  // === Rauda (fix: descuentoRauda) ===
+  // Rauda (no toca inventario)
   formRauda.addEventListener("submit", async e=>{
     e.preventDefault();
-    const descR = (document.getElementById("descRauda").value||"").trim();  // Descripción
+    const descR = (document.getElementById("descRauda").value||"").trim();
     const inv   = Number(document.getElementById("invRauda").value);
     const vend  = Number(document.getElementById("vendRauda").value);
-    const desc  = Number(document.getElementById("descuentoRauda").value)||0; // <-- id correcto
+    const desc  = Number(document.getElementById("descuentoRauda").value)||0; // ojo: id correcto en HTML
     const imp   = (document.getElementById("impRauda").value||"").trim();
     const com   = (document.getElementById("comRauda").value||"").trim();
 
     const gan = (vend - inv) - desc;
 
-    const reg = {
-      "Fecha": fechaHora(),
-      "Descripción": descR,
-      "Inversión LPS": inv,
-      "Vendido LPS": vend,
-      "Ganancia LPS": gan.toFixed(2),
-      "Descuento": desc,
-      "Impuesto": imp,
-      "Comentario": com
-    };
+    const reg = {"Fecha": fechaHora(),"Descripción": descR,"Inversión LPS": inv,"Vendido LPS": vend,"Ganancia LPS": gan.toFixed(2),"Descuento": desc,"Impuesto": imp,"Comentario": com};
 
     VENTAS_RAUDA.push(reg);
     saveLocal("VENTAS_RAUDA", VENTAS_RAUDA);
     renderAuto(tablaRauda, VENTAS_RAUDA);
     showToast("✅ Venta Rauda registrada");
-    await ghPutFile("data/VENTAS_RAUDA.json", VENTAS_RAUDA);
-    e.target.reset();
+    await ghPutFile("data/VENTAS_RAUDA.json", VENTAS_RAUDA, "Venta Rauda");
   });
 });
