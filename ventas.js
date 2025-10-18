@@ -56,7 +56,7 @@ async function ghPutFile(path,content,msg="Auto-commit ventas"){
   });
 }
 
-// === Orden fijo de columnas para EMPRESA ===
+// === ORDEN FIJO de columnas para EMPRESA ===
 const COLS_EMPRESA = [
   "Fecha","Producto","Cantidad","Costo Envío","Total Vendido LPS","Descuento","Impuesto","Ganancia LPS"
 ];
@@ -65,9 +65,7 @@ function renderOrdered(tableEl, arr, cols=COLS_EMPRESA){
   if(!arr.length){ tableEl.innerHTML="<tr><td class='text-muted'>Sin registros</td></tr>"; return; }
   tableEl.innerHTML =
     "<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>"+
-    "<tbody>"+
-      arr.map(r=>"<tr>"+cols.map(c=>`<td>${(r[c] ?? "").toString()}</td>`).join("")+"</tr>").join("")+
-    "</tbody>";
+    "<tbody>"+arr.map(r=>"<tr>"+cols.map(c=>`<td>${(r[c] ?? "").toString()}</td>`).join("")+"</tr>").join("")+"</tbody>";
 }
 function renderAuto(tableEl, arr){
   if(!arr.length){ tableEl.innerHTML="<tr><td class='text-muted'>Sin registros</td></tr>"; return; }
@@ -85,16 +83,16 @@ async function cargarInventario(){
 }
 const buscarProd = nombre => INVENTARIO.find(p => (p.nombre||"").toLowerCase()===(nombre||"").toLowerCase()) || {venta:0,costo:0};
 
-// === Migración a esquema y orden nuevos (EMPRESA) ===
+// === Migración (ajusta a esquema y ORDEN nuevos) ===
 function migEmpresa(arr){
   return arr.map(r=>{
     const nombre = r.Producto ?? r.producto ?? "";
-    const cant = toNum(r.Cantidad ?? r.Cant);
-    const prod = buscarProd(nombre);
-    const desc = toNum(r.Descuento);
-    const imp  = (r.Impuesto || "").toString();
-    const costoEnv = 0; // Ventas del Día
-    const totalVend = toNum(prod.venta)*cant;
+    const cant   = toNum(r.Cantidad ?? r.Cant);
+    const prod   = buscarProd(nombre);
+    const desc   = toNum(r.Descuento);
+    const imp    = (r.Impuesto || "").toString();
+    const costoEnv = 0;                          // Ventas del día
+    const totalVend = toNum(prod.venta)*cant;    // sin envío
     const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc;
     return {
       "Fecha": r.Fecha || fechaHora(),
@@ -116,8 +114,8 @@ function migMoto(arr){
     const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
     const desc   = toNum(r.Descuento);
     const imp    = (r.Impuesto || "").toString();
-    const totalVend = (toNum(prod.venta)*cant) + envio;      // + envío
-    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc; // envío no afecta ganancia
+    const totalVend = (toNum(prod.venta)*cant) + envio;           // + envío moto
+    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc; // envío NO afecta ganancia
     return {
       "Fecha": r.Fecha || fechaHora(),
       "Producto": nombre,
@@ -138,7 +136,7 @@ function migCaex(arr){
     const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
     const desc   = toNum(r.Descuento);
     const imp    = (r.Impuesto || "").toString();
-    const totalVend = toNum(prod.venta)*cant;                 // Caex NO suma envío
+    const totalVend = toNum(prod.venta)*cant;                       // Caex NO suma envío al total vendido
     const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - envio - desc;
     return {
       "Fecha": r.Fecha || fechaHora(),
@@ -164,7 +162,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     if(s) s.innerHTML="<option value=''>Seleccione...</option>"+prods.map(p=>`<option>${p}</option>`).join("");
   });
 
-  // cargar registros locales y migrar a orden/forma nuevos
+  // cargar registros locales y migrar a ORDEN nuevo
   VENTAS_EMPRESA = migEmpresa(loadLocal("VENTAS_EMPRESA"));
   ENVIOS_MOTO    = migMoto(loadLocal("ENVIOS_MOTO"));
   ENVIOS_CAEX    = migCaex(loadLocal("ENVIOS_CAEX"));
@@ -191,9 +189,9 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const prod   = buscarProd(nombre);
     if(!prod) return showToast("Producto no encontrado","danger");
 
-    const costoEnv = 0;
-    const totalVend = Number(prod.venta)*cant;   // sin envío
-    const gan = ((Number(prod.venta)-Number(prod.costo))*cant) - desc;
+    const costoEnv  = 0;
+    const totalVend = Number(prod.venta)*cant;             // sin envío
+    const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - desc;
 
     const reg = {
       "Fecha": fechaHora(),
@@ -225,8 +223,8 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const prod   = buscarProd(nombre);
     if(!prod) return showToast("Producto no encontrado","danger");
 
-    const totalVend = (Number(prod.venta)*cant) + envio; // + envío moto
-    const gan = ((Number(prod.venta)-Number(prod.costo))*cant) - desc; // envío no afecta ganancia
+    const totalVend = (Number(prod.venta)*cant) + envio;   // + envío moto
+    const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - desc; // envío NO afecta ganancia
 
     const reg = {
       "Fecha": fechaHora(),
@@ -258,8 +256,8 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     const prod   = buscarProd(nombre);
     if(!prod) return showToast("Producto no encontrado","danger");
 
-    const totalVend = Number(prod.venta)*cant;            // Caex NO suma envío al total vendido
-    const gan = ((Number(prod.venta)-Number(prod.costo))*cant) - envio - desc;
+    const totalVend = Number(prod.venta)*cant;             // Caex NO suma envío al total vendido
+    const gan       = ((Number(prod.venta)-Number(prod.costo))*cant) - envio - desc;
 
     const reg = {
       "Fecha": fechaHora(),
@@ -280,13 +278,13 @@ window.addEventListener("DOMContentLoaded", async ()=>{
     e.target.reset();
   });
 
-  // === Rauda (con fix de id de Descuento) ===
+  // === Rauda (fix: descuentoRauda) ===
   formRauda.addEventListener("submit", async e=>{
     e.preventDefault();
-    const descR = (document.getElementById("descRauda").value||"").trim();        // descripción
+    const descR = (document.getElementById("descRauda").value||"").trim();  // Descripción
     const inv   = Number(document.getElementById("invRauda").value);
     const vend  = Number(document.getElementById("vendRauda").value);
-    const desc  = Number(document.getElementById("descuentoRauda").value)||0;     // <— id corregido
+    const desc  = Number(document.getElementById("descuentoRauda").value)||0; // <-- id correcto
     const imp   = (document.getElementById("impRauda").value||"").trim();
     const com   = (document.getElementById("comRauda").value||"").trim();
 
