@@ -1,315 +1,241 @@
 /* =====================================================
-   Inventario (100% GitHub Pages)
-   - Persistencia local: localStorage
-   - Sincronización con GitHub mediante REST API
+   Inventario con dos rubros: EMPRESA (igual que siempre) y RAUDA
+   - GitHub Pages puro + auto-commit opcional (GH_CFG)
+   - No rompe tu inventario actual: EMPRESA conserva claves/archivo
+   - RAUDA usa su propio JSON/LS y su propia tabla
    ===================================================== */
 
-// ====== Estado ======
-let INVENTARIO = [];
-let GH_CFG = loadGhCfg(); // {owner, repo, branch, path, token, autoCommit}
+let INV_EMPRESA = [];
+let INV_RAUDA   = [];
 
-// ====== Util ======
-function showToast(msg, type="info", ms=1600) {
-  const toast = document.getElementById("toast");
-  toast.className = `alert alert-${type}`;
-  toast.textContent = msg;
-  toast.classList.remove("d-none");
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toast.classList.add("d-none"), ms);
-}
-
-function saveLocal() {
-  try { localStorage.setItem("INVENTARIO_JSON", JSON.stringify(INVENTARIO)); }
-  catch(e){ console.error(e); }
-}
-
-function loadLocal() {
-  try {
-    const s = localStorage.getItem("INVENTARIO_JSON");
-    if (s) return JSON.parse(s);
-  } catch(e) { console.error(e); }
-  return null;
-}
-
-async function loadFromDataFallback() {
-  try {
-    const r = await fetch("data/INVENTARIO.json", {cache: "no-store"});
-    if (!r.ok) return [];
-    const j = await r.json();
-    return Array.isArray(j) ? j : [];
-  } catch(e){ console.error(e); return []; }
-}
-
-function renderTabla() {
-  const tbody = document.getElementById("tbodyInv");
-  if (!INVENTARIO.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-muted">No hay productos registrados.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = INVENTARIO.map((p, i) => `
-    <tr>
-      <td>${i+1}</td>
-      <td>${p.nombre}</td>
-      <td>${p.cantidad}</td>
-      <td>L ${Number(p.costo).toFixed(2)}</td>
-      <td>L ${Number(p.venta).toFixed(2)}</td>
-      <td class="d-flex gap-2">
-        <button class="btn btn-warning btn-sm" data-action="editar" data-index="${i}" data-bs-toggle="modal" data-bs-target="#editarModal">Editar</button>
-        <button class="btn btn-danger btn-sm" data-action="eliminar" data-index="${i}">Eliminar</button>
-      </td>
-    </tr>
-  `).join("");
-}
-
-// ====== GitHub Sync ======
+// === Config GH (reutiliza tu config existente del Sync) ===
 function loadGhCfg() {
-  try {
-    const s = localStorage.getItem("GH_SYNC_CFG");
-    return s ? JSON.parse(s) : { owner:"", repo:"", branch:"main", path:"data/INVENTARIO.json", token:"", autoCommit:false };
-  } catch(e){ return { owner:"", repo:"", branch:"main", path:"data/INVENTARIO.json", token:"", autoCommit:false }; }
+  try { const s = localStorage.getItem("GH_SYNC_CFG"); return s ? JSON.parse(s) : {}; }
+  catch { return {}; }
 }
-function saveGhCfg(obj) {
-  GH_CFG = Object.assign({}, GH_CFG, obj);
-  localStorage.setItem("GH_SYNC_CFG", JSON.stringify(GH_CFG));
-}
+const GH_CFG = loadGhCfg();
 
-async function ghGetFile() {
-  const {owner, repo, branch, path, token} = GH_CFG;
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
-  const r = await fetch(url, {
-    headers: {
-      "Accept": "application/vnd.github+json",
-      "Authorization": token ? `Bearer ${token}` : undefined
-    }
-  });
-  if (r.status === 404) return {exists:false};
-  if (!r.ok) throw new Error(`GET ${r.status}`);
-  const j = await r.json();
-  return {exists:true, sha:j.sha};
-}
-
-// === NUEVO: leer inventario completo desde el repo ===
-async function ghFetchJSON() {
-  const {owner, repo, branch, path, token} = GH_CFG;
-  if (!owner || !repo || !branch || !path) return null;
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
-  const r = await fetch(url, {
-    headers: {
-      "Accept": "application/vnd.github+json",
-      ...(token ? {"Authorization": `Bearer ${token}`} : {})
-    }
-  });
-  if (r.status === 404) return null;
-  if (!r.ok) throw new Error(`GET ${r.status}`);
-  const j = await r.json();
-  const decoded = decodeURIComponent(escape(atob(j.content.replace(/\n/g, ""))));
-  return JSON.parse(decoded);
-}
-
-function _b64(str) {
-  return btoa(unescape(encodeURIComponent(str)));
-}
-
-async function ghPutFile(contentStr, message="Inventario: auto-guardado") {
-  const {owner, repo, branch, path, token} = GH_CFG;
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
-  let sha = null;
-  try {
-    const meta = await ghGetFile();
-    if (meta.exists) sha = meta.sha;
-  } catch(e){ /* ignore */ }
-
-  const body = {
-    message,
-    branch,
-    content: _b64(contentStr),
-    sha: sha || undefined
-  };
-
-  const r = await fetch(url, {
-    method:"PUT",
-    headers: {
-      "Accept": "application/vnd.github+json",
-      "Authorization": token ? `Bearer ${token}` : undefined,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(`PUT ${r.status}`);
-  return r.json();
-}
-
-let _commitTimer = null;
-function ghAutoCommit() {
-  if (!GH_CFG.autoCommit || !GH_CFG.token) return;
-  clearTimeout(_commitTimer);
-  _commitTimer = setTimeout(async () => {
-    try {
-      await ghPutFile(JSON.stringify(INVENTARIO, null, 2));
-      showToast("Inventario guardado en GitHub ✅", "success", 1200);
-    } catch(e) {
-      console.error(e);
-      showToast("No se pudo guardar en GitHub", "danger", 1600);
-    }
-  }, 900);
-}
-
-// ====== Eventos ======
-window.addEventListener("DOMContentLoaded", async () => {
-  // Cargar inventario desde local o data
-  const local = loadLocal();
-  if (local) {
-    INVENTARIO = local;
-  } else {
-    INVENTARIO = await loadFromDataFallback();
-    saveLocal();
-  }
-
-  // 🔁 NUEVO: intentar cargar inventario desde GitHub automáticamente
-  try {
-    const remote = await ghFetchJSON();
-    if (Array.isArray(remote) && remote.length) {
-      INVENTARIO = remote;
-      saveLocal();
-      console.log("Inventario cargado desde GitHub automáticamente");
-    }
-  } catch (e) {
-    console.warn("No se pudo leer del repo:", e);
-  }
-
-  renderTabla();
-
-  // Agregar producto
-  document.getElementById("formAgregar").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const nuevo = {
-      nombre: (fd.get("nombre")||"").trim(),
-      cantidad: Number(fd.get("cantidad")||0),
-      costo: Number(fd.get("costo")||0),
-      venta: Number(fd.get("venta")||0),
-    };
-    if (!nuevo.nombre) return showToast("Escribe un nombre.", "warning");
-    INVENTARIO.push(nuevo);
-    renderTabla();
-    saveLocal();
-    ghAutoCommit();
-    e.target.reset();
-    showToast("Producto agregado.");
-  });
-
-  // Acciones tabla
-  document.getElementById("tbodyInv").addEventListener("click", async (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    const idx = Number(btn.dataset.index);
-
-    if (btn.dataset.action === "eliminar") {
-      if (!confirm("¿Eliminar este producto?")) return;
-      INVENTARIO.splice(idx, 1);
-      renderTabla();
-      saveLocal();
-      ghAutoCommit();
-      showToast("Eliminado.");
-    }
-    if (btn.dataset.action === "editar") {
-      const p = INVENTARIO[idx];
-      document.getElementById("editIndex").value = idx;
-      document.getElementById("editNombre").value = p.nombre;
-      document.getElementById("editCantidad").value = p.cantidad;
-      document.getElementById("editCosto").value = p.costo;
-      document.getElementById("editVenta").value = p.venta;
-    }
-  });
-
-  // Guardar edición
-  document.getElementById("formEditar").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const idx = Number(document.getElementById("editIndex").value);
-    INVENTARIO[idx] = {
-      nombre: document.getElementById("editNombre").value.trim(),
-      cantidad: Number(document.getElementById("editCantidad").value || 0),
-      costo: Number(document.getElementById("editCosto").value || 0),
-      venta: Number(document.getElementById("editVenta").value || 0)
-    };
-    renderTabla();
-    const modal = bootstrap.Modal.getInstance(document.getElementById("editarModal"));
-    modal.hide();
-    saveLocal();
-    ghAutoCommit();
-    showToast("Editado.");
-  });
-
-  // Exportar / Importar
-  document.getElementById("btnExportJSON").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(INVENTARIO, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "INVENTARIO.json";
-    a.click();
-  });
-  document.getElementById("importFile").addEventListener("change", async (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    try {
-      const text = await f.text();
-      const data = JSON.parse(text);
-      if (!Array.isArray(data)) throw new Error("Formato inválido");
-      INVENTARIO = data;
-      renderTabla();
-      saveLocal();
-      ghAutoCommit();
-      showToast("Importado.");
-    } catch(err) {
-      console.error(err);
-      showToast("JSON inválido.", "danger");
-    }
-    e.target.value = "";
-  });
-
-  // ====== Sync modal ======
-  const formSync = document.getElementById("formSync");
-  const status = document.getElementById("syncStatus");
-  const autoCommit = document.getElementById("autoCommit");
-
-  formSync.owner.value = GH_CFG.owner || "";
-  formSync.repo.value  = GH_CFG.repo || "";
-  formSync.branch.value= GH_CFG.branch || "main";
-  formSync.path.value  = GH_CFG.path || "data/INVENTARIO.json";
-  formSync.token.value = GH_CFG.token || "";
-  autoCommit.checked   = !!GH_CFG.autoCommit;
-
-  formSync.addEventListener("submit", (e) => {
-    e.preventDefault();
-    saveGhCfg({
-      owner: formSync.owner.value.trim(),
-      repo: formSync.repo.value.trim(),
-      branch: formSync.branch.value.trim() || "main",
-      path: formSync.path.value.trim() || "data/INVENTARIO.json",
-      token: formSync.token.value.trim(),
-      autoCommit: !!autoCommit.checked
+function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+async function ghPutFile(path,content,msg="Auto-commit inventario"){
+  if(!GH_CFG.token || !GH_CFG.autoCommit) return;
+  const {owner,repo,branch,token}=GH_CFG;
+  let sha=null;
+  try{
+    const meta=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{
+      headers:{"Accept":"application/vnd.github+json","Authorization":`Bearer ${token}`}
     });
-    status.textContent = "Ajustes guardados ✅";
-    setTimeout(()=> status.textContent="", 1500);
+    if(meta.status===200){ const j=await meta.json(); sha=j.sha; }
+  }catch{}
+  await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+    method:"PUT",
+    headers:{
+      "Accept":"application/vnd.github+json",
+      "Authorization":`Bearer ${token}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({message:msg,branch,content:b64(JSON.stringify(content,null,2)),sha})
   });
+}
 
-  document.getElementById("btnTestGH").addEventListener("click", async () => {
-    try {
-      const res = await ghGetFile();
-      status.textContent = res.exists ? "Conexión OK (archivo existe)" : "Conexión OK (archivo no existe, se creará)";
-    } catch(e) {
-      console.error(e);
-      status.textContent = "Error de conexión";
-    }
-  });
+// === Utils ===
+function showToast(msg, type="success", ms=1500) {
+  const t = document.getElementById("toast");
+  if(!t) return alert(msg);
+  t.textContent = msg;
+  t.className = `alert alert-${type}`;
+  t.classList.remove("d-none");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.add("d-none"), ms);
+}
+async function fetchJSON(url){ try{ const r=await fetch(url,{cache:"no-store"}); if(r.ok) return r.json(); }catch{} return []; }
+function saveLocal(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function loadLocal(k){ try{ const s=localStorage.getItem(k); return s?JSON.parse(s):[]; }catch{ return []; } }
+function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
 
-  document.getElementById("btnPushNow").addEventListener("click", async () => {
-    try {
-      await ghPutFile(JSON.stringify(INVENTARIO, null, 2), "Inventario: subida manual");
-      status.textContent = "Subido a GitHub ✅";
-    } catch(e) {
-      console.error(e);
-      status.textContent = "No se pudo subir";
+// === Carga inicial (preferir localStorage; si vacío, JSON del repo) ===
+async function cargarInventarios(){
+  // EMPRESA: mantiene las mismas claves/archivo que ya usabas
+  INV_EMPRESA = loadLocal("INVENTARIO_JSON");
+  if(!Array.isArray(INV_EMPRESA) || !INV_EMPRESA.length){
+    INV_EMPRESA = await fetchJSON("data/INVENTARIO.json");
+  }
+
+  // RAUDA: nuevo dataset
+  INV_RAUDA = loadLocal("INVENTARIO_RAUDA_JSON");
+  if(!Array.isArray(INV_RAUDA) || !INV_RAUDA.length){
+    INV_RAUDA = await fetchJSON("data/INVENTARIO_RAUDA.json");
+  }
+
+  // Asegurar arrays
+  INV_EMPRESA = Array.isArray(INV_EMPRESA) ? INV_EMPRESA : [];
+  INV_RAUDA   = Array.isArray(INV_RAUDA)   ? INV_RAUDA   : [];
+}
+
+// === Guardar (LS + repo si auto-commit) ===
+async function persistEmpresa(msg="Actualizar inventario EMPRESA"){
+  saveLocal("INVENTARIO_JSON", INV_EMPRESA);
+  await ghPutFile("data/INVENTARIO.json", INV_EMPRESA, msg);
+}
+async function persistRauda(msg="Actualizar inventario RAUDA"){
+  saveLocal("INVENTARIO_RAUDA_JSON", INV_RAUDA);
+  await ghPutFile("data/INVENTARIO_RAUDA.json", INV_RAUDA, msg);
+}
+
+// === Render tablas ===
+function renderTablaEmpresa(){
+  const el = document.getElementById("tablaInventario");
+  if(!el) return;
+  if(!INV_EMPRESA.length){ el.innerHTML="<tr><td class='text-muted'>Sin productos</td></tr>"; return; }
+  el.innerHTML = `
+    <thead><tr>
+      <th>Nombre</th><th>Costo</th><th>Venta</th><th>Cantidad</th><th>Acciones</th>
+    </tr></thead>
+    <tbody>
+      ${INV_EMPRESA.map((p,i)=>`
+        <tr>
+          <td>${p.nombre}</td>
+          <td>${toNum(p.costo).toFixed(2)}</td>
+          <td>${toNum(p.venta).toFixed(2)}</td>
+          <td>${toNum(p.cantidad)}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" data-set="EMPRESA" data-idx="${i}" data-action="edit">Editar</button>
+            <button class="btn btn-sm btn-outline-danger"  data-set="EMPRESA" data-idx="${i}" data-action="del">Eliminar</button>
+          </td>
+        </tr>
+      `).join("")}
+    </tbody>
+  `;
+}
+function renderTablaRauda(){
+  const el = document.getElementById("tablaInventarioRauda");
+  if(!el) return;
+  if(!INV_RAUDA.length){ el.innerHTML="<tr><td class='text-muted'>Sin productos RAUDA</td></tr>"; return; }
+  el.innerHTML = `
+    <thead><tr>
+      <th>Nombre</th><th>Costo</th><th>Venta</th><th>Cantidad</th><th>Acciones</th>
+    </tr></thead>
+    <tbody>
+      ${INV_RAUDA.map((p,i)=>`
+        <tr>
+          <td>${p.nombre}</td>
+          <td>${toNum(p.costo).toFixed(2)}</td>
+          <td>${toNum(p.venta).toFixed(2)}</td>
+          <td>${toNum(p.cantidad)}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" data-set="RAUDA" data-idx="${i}" data-action="edit">Editar</button>
+            <button class="btn btn-sm btn-outline-danger"  data-set="RAUDA" data-idx="${i}" data-action="del">Eliminar</button>
+          </td>
+        </tr>
+      `).join("")}
+    </tbody>
+  `;
+}
+function rerender(){ renderTablaEmpresa(); renderTablaRauda(); }
+
+// === Alta / Edición ===
+let editCtx = null; // {set: 'EMPRESA'|'RAUDA', idx: number}
+
+function leerCampos(){
+  // Ajusta ids si tus inputs tienen otros nombres
+  const nombre   = (document.getElementById("nombre")?.value||"").trim();
+  const costo    = toNum(document.getElementById("costo")?.value);
+  const venta    = toNum(document.getElementById("venta")?.value);
+  const cantidad = toNum(document.getElementById("cantidad")?.value);
+  return {nombre, costo, venta, cantidad};
+}
+function setCampos(p){
+  if(document.getElementById("nombre"))   document.getElementById("nombre").value = p?.nombre ?? "";
+  if(document.getElementById("costo"))    document.getElementById("costo").value = p?.costo ?? 0;
+  if(document.getElementById("venta"))    document.getElementById("venta").value = p?.venta ?? 0;
+  if(document.getElementById("cantidad")) document.getElementById("cantidad").value = p?.cantidad ?? 0;
+}
+
+async function onSubmitProducto(e){
+  e.preventDefault();
+  const rubroSel = (document.getElementById("rubroInventario")?.value || "EMPRESA").toUpperCase();
+  const p = leerCampos();
+  if(!p.nombre){ showToast("Nombre requerido","danger"); return; }
+  if(p.costo<0 || p.venta<0 || p.cantidad<0){ showToast("Valores no válidos","danger"); return; }
+
+  if(editCtx){
+    // Editar
+    if(editCtx.set==="EMPRESA"){
+      INV_EMPRESA[editCtx.idx] = p;
+      await persistEmpresa("Editar producto EMPRESA");
+    }else{
+      INV_RAUDA[editCtx.idx] = p;
+      await persistRauda("Editar producto RAUDA");
     }
-  });
+    editCtx=null;
+    showToast("Producto actualizado");
+  }else{
+    // Alta
+    if(rubroSel==="RAUDA"){
+      INV_RAUDA.push(p);
+      await persistRauda("Agregar producto RAUDA");
+      showToast("Producto agregado a RAUDA");
+    }else{
+      INV_EMPRESA.push(p);
+      await persistEmpresa("Agregar producto EMPRESA");
+      showToast("Producto agregado a EMPRESA");
+    }
+  }
+
+  rerender();
+  // limpia formulario
+  setCampos({nombre:"",costo:0,venta:0,cantidad:0});
+  const form = e.target;
+  if(form && form.reset) form.reset();
+  // vuelve el rubro por defecto EMPRESA
+  const rubro = document.getElementById("rubroInventario");
+  if(rubro) rubro.value = "EMPRESA";
+}
+
+// === Delegación de eventos para Editar/Eliminar ===
+document.addEventListener("click", async (ev)=>{
+  const btn = ev.target.closest("button[data-action]");
+  if(!btn) return;
+  const set = btn.getAttribute("data-set"); // EMPRESA | RAUDA
+  const idx = Number(btn.getAttribute("data-idx"));
+  const act = btn.getAttribute("data-action");
+
+  if(act==="edit"){
+    editCtx = {set, idx};
+    const p = (set==="EMPRESA" ? INV_EMPRESA[idx] : INV_RAUDA[idx]) || {};
+    setCampos(p);
+    document.getElementById("rubroInventario") && (document.getElementById("rubroInventario").value=set);
+    showToast(`Editando producto en ${set}`);
+  }
+
+  if(act==="del"){
+    if(!confirm("¿Eliminar este producto?")) return;
+    if(set==="EMPRESA"){
+      INV_EMPRESA.splice(idx,1);
+      await persistEmpresa("Eliminar producto EMPRESA");
+    }else{
+      INV_RAUDA.splice(idx,1);
+      await persistRauda("Eliminar producto RAUDA");
+    }
+    rerender();
+    showToast("Producto eliminado","warning");
+  }
+});
+
+// === Inicialización ===
+window.addEventListener("DOMContentLoaded", async ()=>{
+  await cargarInventarios();
+
+  // Bind del form (ajusta si tu form tiene otro id)
+  const form = document.getElementById("formInventario") || document.getElementById("formProducto") || document.querySelector("form#formAdd") || document.querySelector("form");
+  if(form) form.addEventListener("submit", onSubmitProducto);
+
+  // Si no existe el selector todavía, crea uno por defecto (EMPRESA)
+  if(!document.getElementById("rubroInventario")){
+    const fake = document.createElement("input");
+    fake.type="hidden"; fake.id="rubroInventario"; fake.value="EMPRESA";
+    document.body.appendChild(fake);
+  }
+
+  // Render
+  rerender();
 });
