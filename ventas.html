@@ -1,167 +1,328 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ventas | Sistema Brayan Raudales</title>
-  <link rel="stylesheet" href="static/style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+/* =====================================================
+   Módulo de Ventas - Sistema Brayan Raudales (orden de columnas fijo)
+   Compatible con GitHub Pages (local + auto-commit opcional)
+   ===================================================== */
 
-<body class="bg-light">
+let INVENTARIO = [];
+let VENTAS_EMPRESA = [];
+let ENVIOS_MOTO = [];
+let ENVIOS_CAEX = [];
+let VENTAS_RAUDA = [];
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-    <div class="container">
-      <a class="navbar-brand fw-bold text-primary" href="/xsrwdsi/index.html">Inventario</a>
-      <div>
-  <a href="/xsrwdsi/index.html" class="btn btn-outline-primary btn-sm mx-1">Inventario</a>
-  <a href="/xsrwdsi/ventas.html" class="btn btn-primary btn-sm mx-1">Ventas</a>
-  <a href="/xsrwdsi/resumen.html" class="btn btn-outline-primary btn-sm mx-1">Resumen</a>
-  <a href="/xsrwdsi/notas.html" class="btn btn-outline-primary btn-sm mx-1">Notas</a>
-</div>
-    </div>
-  </nav>
+// === Configuración GitHub (reutiliza la del inventario) ===
+function loadGhCfg() {
+  try {
+    const s = localStorage.getItem("GH_SYNC_CFG");
+    return s ? JSON.parse(s) : {};
+  } catch {
+    return {};
+  }
+}
+const GH_CFG = loadGhCfg();
 
-  <div class="container mb-5">
-    <h3 class="text-center mb-4">Gestión de Ventas</h3>
+// === Utilidades ===
+function showToast(msg, type="success", ms=1500) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `alert alert-${type}`;
+  t.classList.remove("d-none");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.add("d-none"), ms);
+}
+function fechaHora() {
+  const f = new Date();
+  return f.toLocaleDateString("es-HN")+" "+f.toLocaleTimeString("es-HN",{hour:"2-digit",minute:"2-digit"});
+}
+async function fetchJSON(url){
+  try{const r=await fetch(url,{cache:"no-store"}); if(r.ok) return r.json();}catch{}
+  return [];
+}
+function saveLocal(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function loadLocal(k){
+  try{ const s=localStorage.getItem(k); return s?JSON.parse(s):[]; }catch{ return []; }
+}
+function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
 
-    <!-- VENTAS DEL DÍA -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title text-primary fw-bold">Ventas del Día (EMPRESA)</h5>
-        <form id="formVentaDia" class="row g-2 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label">Producto</label>
-            <select id="prodVentaDia" class="form-select" required></select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Cantidad</label>
-            <input type="number" min="1" id="cantVentaDia" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Descuento (LPS)</label>
-            <input type="number" min="0" id="descVentaDia" class="form-control" value="0">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Impuesto</label>
-            <input type="text" id="impVentaDia" class="form-control" placeholder="Ej. ISV 15%">
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-success w-100">Registrar</button>
-          </div>
-        </form>
-        <table class="table table-sm table-hover mt-3" id="tablaVentaDia"></table>
-      </div>
-    </div>
+// === Auto-commit GitHub ===
+async function ghPutFile(path,content,msg="Auto-commit ventas"){
+  if(!GH_CFG.token || !GH_CFG.autoCommit) return;
+  const {owner,repo,branch,token}=GH_CFG;
+  // obtener sha si existe
+  let sha=null;
+  try{
+    const meta=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{
+      headers:{"Accept":"application/vnd.github+json","Authorization":`Bearer ${token}`}
+    });
+    if(meta.status===200){ const j=await meta.json(); sha=j.sha; }
+  }catch{}
+  // PUT
+  await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+    method:"PUT",
+    headers:{
+      "Accept":"application/vnd.github+json",
+      "Authorization":`Bearer ${token}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({message:msg,branch,content:b64(JSON.stringify(content,null,2)),sha})
+  });
+}
 
-    <!-- ENVIOS MOTO -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title text-warning fw-bold">Envíos Moto (EMPRESA)</h5>
-        <form id="formEnvioMoto" class="row g-2 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label">Producto</label>
-            <select id="prodEnvioMoto" class="form-select" required></select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Cantidad</label>
-            <input type="number" min="1" id="cantEnvioMoto" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Costo Envío Moto</label>
-            <input type="number" min="0" id="costoEnvioMoto" class="form-control">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Descuento</label>
-            <input type="number" min="0" id="descEnvioMoto" class="form-control" value="0">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Impuesto</label>
-            <input type="text" id="impEnvioMoto" class="form-control">
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-success w-100">Registrar</button>
-          </div>
-        </form>
-        <table class="table table-sm table-hover mt-3" id="tablaEnvioMoto"></table>
-      </div>
-    </div>
+// === Render (respeta el orden de las llaves del objeto) ===
+function render(tabla,arr){
+  if(!arr.length){
+    tabla.innerHTML="<tr><td class='text-muted'>Sin registros</td></tr>";
+    return;
+  }
+  const cols = Object.keys(arr[0]); // respeta el orden de inserción
+  tabla.innerHTML =
+    "<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>"+
+    "<tbody>"+
+      arr.map(r=>"<tr>"+cols.map(c=>`<td>${r[c]}</td>`).join("")+"</tr>").join("")+
+    "</tbody>";
+}
 
-    <!-- ENVIOS CAEX -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title text-danger fw-bold">Envíos Caex (EMPRESA)</h5>
-        <form id="formEnvioCaex" class="row g-2 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label">Producto</label>
-            <select id="prodEnvioCaex" class="form-select" required></select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Cantidad</label>
-            <input type="number" min="1" id="cantEnvioCaex" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Costo Envío Caex</label>
-            <input type="number" min="0" id="costoEnvioCaex" class="form-control">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Descuento</label>
-            <input type="number" min="0" id="descEnvioCaex" class="form-control" value="0">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Impuesto</label>
-            <input type="text" id="impEnvioCaex" class="form-control">
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-success w-100">Registrar</button>
-          </div>
-        </form>
-        <table class="table table-sm table-hover mt-3" id="tablaEnvioCaex"></table>
-      </div>
-    </div>
+// === Cargar inventario ===
+async function cargarInventario(){
+  const local=loadLocal("INVENTARIO_JSON");
+  if(local?.length) return local;
+  const remoto=await fetchJSON("data/INVENTARIO.json");
+  return remoto;
+}
 
-    <!-- RAUDA -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title text-success fw-bold">Rauda</h5>
-        <form id="formRauda" class="row g-2 align-items-end">
-          <div class="col-md-3">
-            <label class="form-label">Descripción</label>
-            <input type="text" id="descRauda" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Costo Inversión</label>
-            <input type="number" min="0" id="invRauda" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Costo Vendido</label>
-            <input type="number" min="0" id="vendRauda" class="form-control" required>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Descuento</label>
-            <input type="number" min="0" id="descRauda" class="form-control" value="0">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Impuesto</label>
-            <input type="text" id="impRauda" class="form-control">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Comentario</label>
-            <input type="text" id="comRauda" class="form-control">
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-success w-100">Registrar</button>
-          </div>
-        </form>
-        <table class="table table-sm table-hover mt-3" id="tablaRauda"></table>
-      </div>
-    </div>
-  </div>
+function buscarProd(nombre){
+  return INVENTARIO.find(p => (p.nombre || "").toLowerCase() === (nombre||"").toLowerCase());
+}
 
-  <div id="toast" class="alert d-none position-fixed bottom-0 end-0 m-3"></div>
+// === Migración a nuevo esquema/orden de columnas ===
+function toNum(n){ const v=Number(n); return isNaN(v)?0:v; }
 
-  <script src="ventas.js"></script>
-</body>
-</html>
+function migrarEmpresa(arr){
+  return arr.map(r=>{
+    if("Total Vendido LPS" in r && "Costo Envío" in r && "Cantidad" in r) return r; // ya ok
+    const nombre = r.Producto || r.producto || "";
+    const cant   = toNum(r.Cantidad ?? r.Cant);
+    const prod   = buscarProd(nombre) || {venta:0, costo:0};
+    const desc   = toNum(r.Descuento);
+    const imp    = (r.Impuesto || "").toString();
+    // Ventas del día: sin envío
+    const costoEnv = 0;
+    const totalVend = (toNum(prod.venta) * cant); // sin envío
+    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc;
+    return {
+      "Fecha": r.Fecha || fechaHora(),
+      "Producto": nombre,
+      "Cantidad": cant,
+      "Costo Envío": costoEnv,
+      "Total Vendido LPS": totalVend.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Ganancia LPS": gan.toFixed(2)
+    };
+  });
+}
+function migrarMoto(arr){
+  return arr.map(r=>{
+    if("Total Vendido LPS" in r && "Costo Envío" in r && "Cantidad" in r) return r;
+    const nombre = r.Producto || "";
+    const cant   = toNum(r.Cantidad ?? r.Cant);
+    const prod   = buscarProd(nombre) || {venta:0, costo:0};
+    const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
+    const desc   = toNum(r.Descuento);
+    const imp    = (r.Impuesto || "").toString();
+    const totalVend = (toNum(prod.venta) * cant) + envio; // + envío moto
+    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - desc; // envío NO afecta ganancia
+    return {
+      "Fecha": r.Fecha || fechaHora(),
+      "Producto": nombre,
+      "Cantidad": cant,
+      "Costo Envío": envio,
+      "Total Vendido LPS": totalVend.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Ganancia LPS": gan.toFixed(2)
+    };
+  });
+}
+function migrarCaex(arr){
+  return arr.map(r=>{
+    if("Total Vendido LPS" in r && "Costo Envío" in r && "Cantidad" in r) return r;
+    const nombre = r.Producto || "";
+    const cant   = toNum(r.Cantidad ?? r.Cant);
+    const prod   = buscarProd(nombre) || {venta:0, costo:0};
+    const envio  = toNum(r["Costo Envío"] ?? r["Costo Envio"]);
+    const desc   = toNum(r.Descuento);
+    const imp    = (r.Impuesto || "").toString();
+    const totalVend = (toNum(prod.venta) * cant); // Caex no suma envío al total vendido
+    const gan = ((toNum(prod.venta)-toNum(prod.costo))*cant) - envio - desc;
+    return {
+      "Fecha": r.Fecha || fechaHora(),
+      "Producto": nombre,
+      "Cantidad": cant,
+      "Costo Envío": envio,
+      "Total Vendido LPS": totalVend.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Ganancia LPS": gan.toFixed(2)
+    };
+  });
+}
 
+// === Inicialización ===
+window.addEventListener("DOMContentLoaded", async ()=>{
+  INVENTARIO = await cargarInventario();
+
+  // llenar selects (EMPRESA)
+  const prods = INVENTARIO.map(p=>p.nombre);
+  ["prodVentaDia","prodEnvioMoto","prodEnvioCaex"].forEach(id=>{
+    const s=document.getElementById(id);
+    if(!s) return;
+    s.innerHTML="<option value=''>Seleccione...</option>"+prods.map(p=>`<option>${p}</option>`).join("");
+  });
+
+  // cargar ventas locales (y migrar a nuevo esquema)
+  VENTAS_EMPRESA = migrarEmpresa(loadLocal("VENTAS_EMPRESA"));
+  ENVIOS_MOTO    = migrarMoto(loadLocal("ENVIOS_MOTO"));
+  ENVIOS_CAEX    = migrarCaex(loadLocal("ENVIOS_CAEX"));
+  VENTAS_RAUDA   = loadLocal("VENTAS_RAUDA"); // Rauda mantiene sus columnas propias
+
+  // Render inicial
+  render(tablaVentaDia, VENTAS_EMPRESA);
+  render(tablaEnvioMoto, ENVIOS_MOTO);
+  render(tablaEnvioCaex, ENVIOS_CAEX);
+  render(tablaRauda, VENTAS_RAUDA);
+
+  // Guardar migración si hubo cambios
+  saveLocal("VENTAS_EMPRESA", VENTAS_EMPRESA);
+  saveLocal("ENVIOS_MOTO", ENVIOS_MOTO);
+  saveLocal("ENVIOS_CAEX", ENVIOS_CAEX);
+
+  // === Ventas del día ===
+  formVentaDia.addEventListener("submit", async e=>{
+    e.preventDefault();
+    const nombre = prodVentaDia.value;
+    const cant   = Number(cantVentaDia.value);
+    const desc   = Number(descVentaDia.value)||0;
+    const imp    = impVentaDia.value.trim();
+    const prod   = buscarProd(nombre);
+    if(!prod) return showToast("Producto no encontrado","danger");
+
+    const costoEnv = 0;
+    const totalVend = (Number(prod.venta)*cant); // sin envío
+    const gan = ((Number(prod.venta)-Number(prod.costo))*cant) - desc;
+
+    const reg = {
+      "Fecha": fechaHora(),
+      "Producto": nombre,
+      "Cantidad": cant,
+      "Costo Envío": costoEnv,
+      "Total Vendido LPS": totalVend.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Ganancia LPS": gan.toFixed(2)
+    };
+
+    VENTAS_EMPRESA.push(reg);
+    saveLocal("VENTAS_EMPRESA", VENTAS_EMPRESA);
+    render(tablaVentaDia, VENTAS_EMPRESA);
+    showToast("✅ Venta registrada correctamente");
+    await ghPutFile("data/VENTAS_EMPRESA.json", VENTAS_EMPRESA);
+    e.target.reset();
+  });
+
+  // === Envíos Moto ===
+  formEnvioMoto.addEventListener("submit", async e=>{
+    e.preventDefault();
+    const nombre = prodEnvioMoto.value;
+    const cant   = Number(cantEnvioMoto.value);
+    const envio  = Number(costoEnvioMoto.value)||0;
+    const desc   = Number(descEnvioMoto.value)||0;
+    const imp    = impEnvioMoto.value.trim();
+    const prod   = buscarProd(nombre);
+    if(!prod) return showToast("Producto no encontrado","danger");
+
+    const totalVend = (Number(prod.venta)*cant) + envio; // + envío moto
+    const gan = ((Number(prod.venta)-Number(prod.costo))*cant) - desc; // envío no afecta ganancia
+
+    const reg = {
+      "Fecha": fechaHora(),
+      "Producto": nombre,
+      "Cantidad": cant,
+      "Costo Envío": envio,
+      "Total Vendido LPS": totalVend.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Ganancia LPS": gan.toFixed(2)
+    };
+
+    ENVIOS_MOTO.push(reg);
+    saveLocal("ENVIOS_MOTO", ENVIOS_MOTO);
+    render(tablaEnvioMoto, ENVIOS_MOTO);
+    showToast("✅ Envío Moto registrado");
+    await ghPutFile("data/ENVIOS_MOTO.json", ENVIOS_MOTO);
+    e.target.reset();
+  });
+
+  // === Envíos Caex ===
+  formEnvioCaex.addEventListener("submit", async e=>{
+    e.preventDefault();
+    const nombre = prodEnvioCaex.value;
+    const cant   = Number(cantEnvioCaex.value);
+    const envio  = Number(costoEnvioCaex.value)||0;
+    const desc   = Number(descEnvioCaex.value)||0;
+    const imp    = impEnvioCaex.value.trim();
+    const prod   = buscarProd(nombre);
+    if(!prod) return showToast("Producto no encontrado","danger");
+
+    const totalVend = (Number(prod.venta)*cant); // Caex no suma envío al total vendido
+    const gan = ((Number(prod.venta)-Number(prod.costo))*cant) - envio - desc;
+
+    const reg = {
+      "Fecha": fechaHora(),
+      "Producto": nombre,
+      "Cantidad": cant,
+      "Costo Envío": envio,
+      "Total Vendido LPS": totalVend.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Ganancia LPS": gan.toFixed(2)
+    };
+
+    ENVIOS_CAEX.push(reg);
+    saveLocal("ENVIOS_CAEX", ENVIOS_CAEX);
+    render(tablaEnvioCaex, ENVIOS_CAEX);
+    showToast("✅ Envío Caex registrado");
+    await ghPutFile("data/ENVIOS_CAEX.json", ENVIOS_CAEX);
+    e.target.reset();
+  });
+
+  // === Rauda (se mantiene con su propio esquema) ===
+  formRauda.addEventListener("submit", async e=>{
+    e.preventDefault();
+    const descR = (document.getElementById("descRauda").value||"").trim();
+    const inv   = Number(document.getElementById("invRauda").value);
+    const vend  = Number(document.getElementById("vendRauda").value);
+    const desc  = Number(document.getElementById("descRauda").value)||0;
+    const imp   = (document.getElementById("impRauda").value||"").trim();
+    const com   = (document.getElementById("comRauda").value||"").trim();
+
+    const gan = (vend - inv) - desc;
+
+    const reg = {
+      "Fecha": fechaHora(),
+      "Descripción": descR,
+      "Inversión LPS": inv,
+      "Vendido LPS": vend,
+      "Ganancia LPS": gan.toFixed(2),
+      "Descuento": desc,
+      "Impuesto": imp,
+      "Comentario": com
+    };
+
+    VENTAS_RAUDA.push(reg);
+    saveLocal("VENTAS_RAUDA", VENTAS_RAUDA);
+    render(tablaRauda, VENTAS_RAUDA);
+    showToast("✅ Venta Rauda registrada");
+    await ghPutFile("data/VENTAS_RAUDA.json", VENTAS_RAUDA);
+    e.target.reset();
+  });
+});
