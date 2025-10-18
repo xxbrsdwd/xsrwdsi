@@ -12,12 +12,12 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
     <div class="container">
-      <a class="navbar-brand fw-bold text-primary" href="/xsrwdsi/index.html">Inventario</a>
+      <a class="navbar-brand fw-bold text-primary" href="index.html">Inventario</a>
       <div>
-        <a href="/xsrwdsi/index.html" class="btn btn-outline-primary btn-sm mx-1">Inventario</a>
-        <a href="/xsrwdsi/ventas.html" class="btn btn-primary btn-sm mx-1">Ventas</a>
-        <a href="/xsrwdsi/resumen.html" class="btn btn-outline-primary btn-sm mx-1">Resumen</a>
-        <a href="/xsrwdsi/notas.html" class="btn btn-outline-primary btn-sm mx-1">Notas</a>
+        <a href="index.html" class="btn btn-outline-primary btn-sm mx-1">Inventario</a>
+        <a href="ventas.html" class="btn btn-primary btn-sm mx-1">Ventas</a>
+        <a href="resumen.html" class="btn btn-outline-primary btn-sm mx-1">Resumen</a>
+        <a href="notas.html" class="btn btn-outline-primary btn-sm mx-1">Notas</a>
       </div>
     </div>
   </nav>
@@ -36,7 +36,7 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Cantidad</label>
-            <input type="number" min="1" id="cantVentaDia" class="form-control" required>
+            <input type="number" min="1" id="cantVentaDia" class="form-control" value="1" required>
           </div>
           <div class="col-md-2">
             <label class="form-label">Descuento (LPS)</label>
@@ -44,13 +44,15 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Impuesto</label>
-            <input type="text" id="impVentaDia" class="form-control" placeholder="Ej. ISV 15%">
+            <input type="text" id="impVentaDia" class="form-control" value="0" placeholder="Ej. ISV 15%">
           </div>
           <div class="col-md-2">
             <button class="btn btn-success w-100">Registrar</button>
           </div>
         </form>
-        <table class="table table-sm table-hover mt-3" id="tablaVentaDia"></table>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mt-3" id="tablaVentaDia"></table>
+        </div>
       </div>
     </div>
 
@@ -65,11 +67,11 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Cantidad</label>
-            <input type="number" min="1" id="cantEnvioMoto" class="form-control" required>
+            <input type="number" min="1" id="cantEnvioMoto" class="form-control" value="1" required>
           </div>
           <div class="col-md-2">
             <label class="form-label">Costo Envío Moto</label>
-            <input type="number" min="0" id="costoEnvioMoto" class="form-control">
+            <input type="number" min="0" id="costoEnvioMoto" class="form-control" value="0">
           </div>
           <div class="col-md-2">
             <label class="form-label">Descuento</label>
@@ -77,13 +79,15 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Impuesto</label>
-            <input type="text" id="impEnvioMoto" class="form-control">
+            <input type="text" id="impEnvioMoto" class="form-control" value="0" placeholder="Opcional">
           </div>
           <div class="col-md-2">
             <button class="btn btn-success w-100">Registrar</button>
           </div>
         </form>
-        <table class="table table-sm table-hover mt-3" id="tablaEnvioMoto"></table>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mt-3" id="tablaEnvioMoto"></table>
+        </div>
       </div>
     </div>
 
@@ -98,11 +102,11 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Cantidad</label>
-            <input type="number" min="1" id="cantEnvioCaex" class="form-control" required>
+            <input type="number" min="1" id="cantEnvioCaex" class="form-control" value="1" required>
           </div>
           <div class="col-md-2">
             <label class="form-label">Costo Envío Caex</label>
-            <input type="number" min="0" id="costoEnvioCaex" class="form-control">
+            <input type="number" min="0" id="costoEnvioCaex" class="form-control" value="0">
           </div>
           <div class="col-md-2">
             <label class="form-label">Descuento</label>
@@ -110,13 +114,15 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Impuesto</label>
-            <input type="text" id="impEnvioCaex" class="form-control">
+            <input type="text" id="impEnvioCaex" class="form-control" value="0" placeholder="Opcional">
           </div>
           <div class="col-md-2">
             <button class="btn btn-success w-100">Registrar</button>
           </div>
         </form>
-        <table class="table table-sm table-hover mt-3" id="tablaEnvioCaex"></table>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mt-3" id="tablaEnvioCaex"></table>
+        </div>
       </div>
     </div>
 
@@ -126,16 +132,20 @@
         <h5 class="card-title text-success fw-bold">Rauda</h5>
         <form id="formRauda" class="row g-2 align-items-end">
           <div class="col-md-3">
-            <label class="form-label">Descripción</label>
-            <input type="text" id="descRauda" class="form-control" required>
+            <label class="form-label">Producto (Inventario RAUDA)</label>
+            <select id="prodRauda" class="form-select" required></select>
           </div>
           <div class="col-md-2">
-            <label class="form-label">Costo Inversión</label>
-            <input type="number" min="0" id="invRauda" class="form-control" required>
+            <label class="form-label">Cantidad</label>
+            <input type="number" min="1" id="cantRauda" class="form-control" value="1" required>
           </div>
           <div class="col-md-2">
-            <label class="form-label">Costo Vendido</label>
-            <input type="number" min="0" id="vendRauda" class="form-control" required>
+            <label class="form-label">Costo Inversión (auto)</label>
+            <input type="number" min="0" id="invRauda" class="form-control" value="0" required>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Vendido LPS (total)</label>
+            <input type="number" min="0" id="vendRauda" class="form-control" value="0" required>
           </div>
           <div class="col-md-2">
             <label class="form-label">Descuento</label>
@@ -143,9 +153,13 @@
           </div>
           <div class="col-md-2">
             <label class="form-label">Impuesto</label>
-            <input type="text" id="impRauda" class="form-control">
+            <input type="text" id="impRauda" class="form-control" value="0" placeholder="Opcional">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-6">
+            <label class="form-label">Descripción (opcional)</label>
+            <input type="text" id="descRauda" class="form-control" placeholder="Detalle de la venta">
+          </div>
+          <div class="col-md-4">
             <label class="form-label">Comentario</label>
             <input type="text" id="comRauda" class="form-control">
           </div>
@@ -153,14 +167,18 @@
             <button class="btn btn-success w-100">Registrar</button>
           </div>
         </form>
-        <table class="table table-sm table-hover mt-3" id="tablaRauda"></table>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mt-3" id="tablaRauda"></table>
+        </div>
       </div>
     </div>
   </div>
 
   <div id="toast" class="alert d-none position-fixed bottom-0 end-0 m-3"></div>
 
-  <!-- Importa el JS como archivo (no lo pegues en el HTML) -->
-  <script src="ventas.js?v=5"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Tu módulo -->
+  <script src="ventas.js?v=7"></script>
 </body>
 </html>
