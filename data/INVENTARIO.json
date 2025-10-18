@@ -10,5 +10,11 @@
     "cantidad": 100,
     "costo": 100,
     "venta": 180
+  },
+  {
+    "nombre": "Elver Galarga",
+    "cantidad": 3,
+    "costo": 76,
+    "venta": 504
   }
 ]
