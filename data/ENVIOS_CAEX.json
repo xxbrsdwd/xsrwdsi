@@ -7,5 +7,25 @@
     "Ganancia LPS": "0.00",
     "Descuento": 0,
     "Impuesto": "0"
+  },
+  {
+    "Fecha": "17/10/2025 10:52 p. m.",
+    "Producto": "Elver Galarga",
+    "Cantidad": 2,
+    "Costo Envío": 0,
+    "Total Vendido LPS": "1008.00",
+    "Descuento": 0,
+    "Impuesto": "0",
+    "Ganancia LPS": "856.00"
+  },
+  {
+    "Fecha": "17/10/2025 10:53 p. m.",
+    "Producto": "Pastilla",
+    "Cantidad": 5,
+    "Costo Envío": 0,
+    "Total Vendido LPS": "2500.00",
+    "Descuento": 0,
+    "Impuesto": "0",
+    "Ganancia LPS": "2325.00"
   }
 ]
