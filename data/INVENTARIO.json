@@ -1,56 +1,63 @@
 [
-  {
-    "nombre": "Pasamontañas",
-    "cantidad": 92,
-    "costo": 25,
-    "venta": 100
-  },
-  {
-    "nombre": "Foco camara",
-    "cantidad": 100,
-    "costo": 100,
-    "venta": 180
-  },
-  {
-    "nombre": "Elver Galarga",
-    "cantidad": 3,
-    "costo": 76,
-    "venta": 504
-  },
-  {
-    "nombre": "Pastilla",
-    "cantidad": 50,
-    "costo": 35,
-    "venta": 500
-  },
-  {
-    "nombre": "asdasd CACA",
-    "costo": 1,
-    "venta": 10,
-    "cantidad": 0
-  },
-  {
-    "nombre": "Cagadaaaa",
-    "cantidad": 98,
-    "costo": 1,
-    "venta": 100
-  },
-  {
-    "nombre": "popoduro",
-    "cantidad": 100,
-    "costo": 1,
-    "venta": 100
-  },
-  {
-    "nombre": "poposuave",
-    "cantidad": 100,
-    "costo": 1,
-    "venta": 100
-  },
-  {
-    "nombre": "popo hipergrande",
-    "cantidad": 100,
-    "costo": 1,
-    "venta": 100
-  }
+  { "nombre": "foco camara", "cantidad": 97, "costo": 75, "venta": 180 },
+  { "nombre": "repetidor", "cantidad": 100, "costo": 121, "venta": 300 },
+  { "nombre": "Set 12 Pulseras Artesanales", "cantidad": 1, "costo": 65, "venta": 100 },
+  { "nombre": "Mini camara", "cantidad": 99, "costo": 65, "venta": 0 },
+  { "nombre": "Organizador 7 cables", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Parlante Lenovo k30", "cantidad": 100, "costo": 125, "venta": 0 },
+  { "nombre": "Linterna Foco Recargable", "cantidad": 100, "costo": 112, "venta": 0 },
+  { "nombre": "Camara 4K", "cantidad": 100, "costo": 400, "venta": 0 },
+  { "nombre": "Peluche Perrito", "cantidad": 100, "costo": 80, "venta": 0 },
+  { "nombre": "Pechera Cámara", "cantidad": 0, "costo": 65, "venta": 0 },
+  { "nombre": "Llavero Yoshi", "cantidad": 100, "costo": 60, "venta": 0 },
+  { "nombre": "Mensajera cruzada", "cantidad": 100, "costo": 80, "venta": 0 },
+  { "nombre": "Lapiz iPad", "cantidad": 100, "costo": 95, "venta": 0 },
+  { "nombre": "Mouse RGB", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Cargador iPhone Tipo C", "cantidad": 100, "costo": 55, "venta": 0 },
+  { "nombre": "Lapiz Universal", "cantidad": 100, "costo": 95, "venta": 0 },
+  { "nombre": "Enfriador Celular", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Mochila Ojos Led", "cantidad": 100, "costo": 2110, "venta": 0 },
+  { "nombre": "Adaptador SATA a USB", "cantidad": 100, "costo": 60, "venta": 0 },
+  { "nombre": "Auriculares X15", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Dedales Gamer", "cantidad": 100, "costo": 1.7373, "venta": 0 },
+  { "nombre": "Memoria Metalica USB 128GB", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Cobertor TPU NS V1/V2", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "GPS GF09", "cantidad": 100, "costo": 165, "venta": 0 },
+  { "nombre": "Microfono Tipo C", "cantidad": 100, "costo": 100, "venta": 0 },
+  { "nombre": "Bocina Pequeña Contra el Agua", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Proyector Galaxia", "cantidad": 100, "costo": 95, "venta": 0 },
+  { "nombre": "M90 Pro", "cantidad": 100, "costo": 90, "venta": 0 },
+  { "nombre": "Vidrio NS", "cantidad": 100, "costo": 19, "venta": 0 },
+  { "nombre": "Estuche NS", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "GTA juego", "cantidad": 100, "costo": 1200, "venta": 0 },
+  { "nombre": "Escaner Azul", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Escaner Negro", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Soporte Cámara", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Forro Asiento Moto", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Antena 4K", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Foco Camara", "cantidad": 100, "costo": 160, "venta": 0 },
+  { "nombre": "Powerbank 20,000", "cantidad": 100, "costo": 108, "venta": 0 },
+  { "nombre": "Adaptador 7 puertos", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "SATA 3.0", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Funda volante", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Insecticida Raid Negro", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Cámara Web 1080HD", "cantidad": 100, "costo": 115, "venta": 0 },
+  { "nombre": "Carcasa Go Pro 8", "cantidad": 100, "costo": 140, "venta": 0 },
+  { "nombre": "Kit Go Pro 9/10/11/12 silicona y Vidrios", "cantidad": 100, "costo": 155, "venta": 0 },
+  { "nombre": "Set reloj dama", "cantidad": 99, "costo": 50, "venta": 0 },
+  { "nombre": "Memoria 128 gb", "cantidad": 100, "costo": 65, "venta": 0 },
+  { "nombre": "Moto escala kawa", "cantidad": 100, "costo": 140, "venta": 0 },
+  { "nombre": "Mini consola", "cantidad": 100, "costo": 102, "venta": 0 },
+  { "nombre": "Carrito control remoto", "cantidad": 100, "costo": 100, "venta": 0 },
+  { "nombre": "Lambo control remoto", "cantidad": 100, "costo": 400, "venta": 0 },
+  { "nombre": "Pechera completa", "cantidad": 100, "costo": 450, "venta": 0 },
+  { "nombre": "Cargador control ps5 doble", "cantidad": 100, "costo": 250, "venta": 0 },
+  { "nombre": "Kit bateria go pro 9+", "cantidad": 100, "costo": 1840, "venta": 0 },
+  { "nombre": "Mouse logitech g305", "cantidad": 100, "costo": 1000, "venta": 0 },
+  { "nombre": "Hand grip 150 lb", "cantidad": 100, "costo": 400, "venta": 0 },
+  { "nombre": "Hand grip 200 lb", "cantidad": 0, "costo": 450, "venta": 0 },
+  { "nombre": "Holder metal moto", "cantidad": 100, "costo": 160, "venta": 0 },
+  { "nombre": "Barco control remoto", "cantidad": 100, "costo": 400, "venta": 0 },
+  { "nombre": "Intercomunicadores y20", "cantidad": 6, "costo": 650, "venta": 0 },
+  { "nombre": "Arbol", "cantidad": 2, "costo": 5, "venta": 10 }
 ]
