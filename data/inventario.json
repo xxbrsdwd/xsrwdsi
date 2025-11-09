@@ -1,44 +1,1199 @@
 [
-  {
-    "nombre": "asdasd",
-    "costo": "111",
-    "stock": "200",
-    "nota": "sadsad",
-    "editado": "9/11/2025, 3:40:21 p. m."
-  },
-  {
-    "nombre": "asesdfg",
-    "costo": "1",
-    "stock": "100",
-    "nota": "",
-    "editado": "9/11/2025, 3:40:28 p. m."
-  },
-  {
-    "nombre": "holahola",
-    "costo": "22",
-    "stock": "144",
-    "nota": "dsfser",
-    "editado": "9/11/2025, 3:40:36 p. m."
-  },
-  {
-    "nombre": "May",
-    "costo": "1",
-    "stock": "10",
-    "nota": "assdad",
-    "editado": "9/11/2025, 3:55:03 p.�m."
-  },
-  {
-    "nombre": "Esmeralda",
-    "costo": "1",
-    "stock": "100",
-    "nota": "awdwe",
-    "editado": "9/11/2025, 3:55:16 p.�m."
-  },
-  {
-    "nombre": "Pineda",
-    "costo": "1",
-    "stock": "11",
-    "nota": "asdawe243",
-    "editado": "9/11/2025, 3:55:31 p.�m."
-  }
+{
+  "nombre": "COSTO: 250",
+  "costo": "150",
+  "stock": "24",
+  "nota": "CL AMARILLOS VARIAS ENTRADAS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "dron e99 GRIS",
+  "costo": "150",
+  "stock": "20",
+  "nota": "color gris doble bateria",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "drone e99 NEGRO",
+  "costo": "150",
+  "stock": "8",
+  "nota": "color negro",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "proyector led varias entradas",
+  "costo": "150",
+  "stock": "36",
+  "nota": "VARIAS ENTRADAS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Combo teclado mouse",
+  "costo": "150",
+  "stock": "11",
+  "nota": "TECLADO CON MOUSE",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Dron e88 NEGRO",
+  "costo": "150",
+  "stock": "4",
+  "nota": "color negro doble bateria",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "dron e99 NEGRO",
+  "costo": "150",
+  "stock": "2",
+  "nota": "COLOR NEGRO",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "CARGADOR IPHONE 20W",
+  "costo": "150",
+  "stock": "172",
+  "nota": "COLOR BLANCO",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Camara exterior negra Yiiot",
+  "costo": "150",
+  "stock": "85",
+  "nota": "APP YI IOT",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "handgrip con contador 60kg",
+  "costo": "150",
+  "stock": "84",
+  "nota": "CON CAJA",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "suplemento detox 30 scups",
+  "costo": "150",
+  "stock": "5",
+  "nota": "LOS CHINOS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "vitamina cabello",
+  "costo": "150",
+  "stock": "82",
+  "nota": "NINGUNA",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Camara exterior Huntvision",
+  "costo": "150",
+  "stock": "20",
+  "nota": "clr blanco Huntvision app",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Foco cámara huntvision",
+  "costo": "150",
+  "stock": "4",
+  "nota": "clr blanco Huntvision app",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Sandisk ultra 128gb con adaptador y tarjeta lectora",
+  "costo": "150",
+  "stock": "7",
+  "nota": "todo el kit",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Pechera celular",
+  "costo": "150",
+  "stock": "18",
+  "nota": "en caja",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Moto escala Kawasaki",
+  "costo": "150",
+  "stock": "18",
+  "nota": "en caja",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Intercomunicador FQG Y10",
+  "costo": "150",
+  "stock": "60",
+  "nota": "EN CAJA",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Intercomunicador Y10",
+  "costo": "150",
+  "stock": "1",
+  "nota": "EN CAJA",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Foco cámara YiIot",
+  "costo": "150",
+  "stock": "36",
+  "nota": "EN CAJA",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "dron k3 e99 pro",
+  "costo": "150",
+  "stock": "10",
+  "nota": "color negro doble batería",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Kit Ratoneras",
+  "costo": "150",
+  "stock": "5",
+  "nota": "EN CAJA",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "K3 e99 pro",
+  "costo": "150",
+  "stock": "10",
+  "nota": "Con doble batería",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "K3 e99 pro",
+  "costo": "150",
+  "stock": "9",
+  "nota": "Con doble batería",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set destornillador pequeño",
+  "costo": "150",
+  "stock": "15",
+  "nota": "32 EN 1",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cargador controles ps5",
+  "costo": "150",
+  "stock": "15",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mouse razer gamer",
+  "costo": "150",
+  "stock": "8",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mouse Logitech g502",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cámara 4k",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Fire 7 kids",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "M90 pro",
+  "costo": "150",
+  "stock": "25",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Drone e99d Max",
+  "costo": "150",
+  "stock": "18",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "microfono doble k9 tipo c y iPhone",
+  "costo": "150",
+  "stock": "35",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "kit vidrios templados + funda go pro 9-12",
+  "costo": "150",
+  "stock": "29",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cabeza cargador 6 puertos",
+  "costo": "150",
+  "stock": "6",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Intercomunicador y20",
+  "costo": "150",
+  "stock": "5",
+  "nota": "3 unidades caja + 2 unidades bolsa",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cabeza cargador 45w 2 puertos usb 1 tipo c",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Pechera completa cam y celular bolsa",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Microfono individual lavalier tipo c",
+  "costo": "150",
+  "stock": "6",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Microfono doble k9 tipo C",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mouse inalambrico bateria",
+  "costo": "150",
+  "stock": "82",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Camara Web",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Llave yamaha con canal",
+  "costo": "150",
+  "stock": "52",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Gps GF07",
+  "costo": "150",
+  "stock": "42",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Llave Yamaha sin Canal",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mouse inalambrico de bateria",
+  "costo": "150",
+  "stock": "99",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Tenda adaptador wifi 300 mbps",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mouse pad grande rgb xxl",
+  "costo": "150",
+  "stock": "11",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Soporte celular y cámara",
+  "costo": "150",
+  "stock": "225",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "P10 intercomunicador",
+  "costo": "150",
+  "stock": "78",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Proyector pocas entradas barato",
+  "costo": "150",
+  "stock": "15",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Repetidor wifi",
+  "costo": "150",
+  "stock": "65",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cajas de flores",
+  "costo": "150",
+  "stock": "4",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "GPS gf07",
+  "costo": "150",
+  "stock": "13",
+  "nota": "en una bolsa gris",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "pasamontañas de 60 lps",
+  "costo": "150",
+  "stock": "871",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "vidrios nintendo switch normal",
+  "costo": "150",
+  "stock": "55",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Disco SSD Kingston 960gb",
+  "costo": "150",
+  "stock": "72",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cartera corona negras",
+  "costo": "150",
+  "stock": "280",
+  "nota": "En caja",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Kit camion pista + 10 carritos plasticos",
+  "costo": "150",
+  "stock": "5",
+  "nota": "SON KITS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Helicoptero control remoto",
+  "costo": "150",
+  "stock": "17",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Lego policia 147 piezas 6 en 1",
+  "costo": "150",
+  "stock": "12",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Lego ambulancia 122 pzs 6 en 1",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Lego Militar 153 pzs 6 en 1",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mini caja fuerte niños",
+  "costo": "150",
+  "stock": "4",
+  "nota": "(2 azules, 2 moradas)",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Carritos mini plastico juguete",
+  "costo": "150",
+  "stock": "568",
+  "nota": "carros con retroceso cuerda",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Kit grabacion",
+  "costo": "150",
+  "stock": "42",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Camara exterior 1 lente yiiot",
+  "costo": "150",
+  "stock": "13",
+  "nota": "COLOR negra",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cargador bateria carro amarillo",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Control inalambrico para consola",
+  "costo": "150",
+  "stock": "6",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set destornillador 115 en 1",
+  "costo": "150",
+  "stock": "14",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set Funda volante color negro",
+  "costo": "150",
+  "stock": "2",
+  "nota": "son sets",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Lentes pixel temu",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Foco camara doble lente app V380",
+  "costo": "150",
+  "stock": "4",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Micro sd 64gb con adaptador clase 10",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Disco SSD Portatil 3.1 4TB",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Disco ssd portatil 8 tb",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Disco ssd portatil 16 tb",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set termo mas 2 tazas",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Adaptador Sata 2 en 1 tipo c y usb",
+  "costo": "150",
+  "stock": "73",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Gps premium GF 09",
+  "costo": "150",
+  "stock": "70",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Dildo tipo microfono",
+  "costo": "150",
+  "stock": "1",
+  "nota": "color negro",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Powerbank 20k mah color negro",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Powerbank 20k mah color blanco",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Powerbank 20k mah color rosa",
+  "costo": "150",
+  "stock": "11",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Powerbank 20k mah color blanco (diseño distinto)",
+  "costo": "150",
+  "stock": "1",
+  "nota": "distinto diseño",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Esponja magica limpia",
+  "costo": "150",
+  "stock": "42",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mini camara a9 en caja",
+  "costo": "150",
+  "stock": "20",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Tarjetero inteligente",
+  "costo": "150",
+  "stock": "6",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Holder retrovisor para carro",
+  "costo": "150",
+  "stock": "6",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cargador de telefono para carro negro",
+  "costo": "150",
+  "stock": "4",
+  "nota": "color negro",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cargador de telefono para carro blanco",
+  "costo": "150",
+  "stock": "3",
+  "nota": "color blanco",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Baterias para dron",
+  "costo": "150",
+  "stock": "50",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Auriculares f9",
+  "costo": "150",
+  "stock": "54",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Bolso azul fashion",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Bolso negro fashion",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cartera negra grande",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera beish grande",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera pequeña con ciper",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera sweiuwy negra",
+  "costo": "150",
+  "stock": "20",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera sweiuwy blanca",
+  "costo": "150",
+  "stock": "7",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera sweiuwy rosa",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera sweiuwy cafe",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera diseño rosa",
+  "costo": "150",
+  "stock": "10",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera corazon",
+  "costo": "150",
+  "stock": "8",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera negra mariposa",
+  "costo": "150",
+  "stock": "4",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera blanca mariposa",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera distintt blanca",
+  "costo": "150",
+  "stock": "2",
+  "nota": "blanca",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera cadena negra",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera cadena blanca",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera dist cadena blanca",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera rara blanca",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera negra jiutibaodai",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cartera como bolso",
+  "costo": "150",
+  "stock": "1",
+  "nota": "negra",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rojo #1",
+  "costo": "150",
+  "stock": "7",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj azul #1",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj dorado #1",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj plateado #1",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set Reloj Plateado #2",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #1",
+  "costo": "150",
+  "stock": "7",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #2",
+  "costo": "150",
+  "stock": "8",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #3",
+  "costo": "150",
+  "stock": "8",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #4",
+  "costo": "150",
+  "stock": "4",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #5",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #6",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #7",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #8",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #9",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj blanco #10",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #1",
+  "costo": "150",
+  "stock": "14",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #2",
+  "costo": "150",
+  "stock": "10",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #3",
+  "costo": "150",
+  "stock": "9",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #4",
+  "costo": "150",
+  "stock": "8",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #5",
+  "costo": "150",
+  "stock": "4",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #6",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #7",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj negro #8",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj hombre café",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #1",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #2",
+  "costo": "150",
+  "stock": "10",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #3",
+  "costo": "150",
+  "stock": "10",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #4",
+  "costo": "150",
+  "stock": "6",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #5",
+  "costo": "150",
+  "stock": "3",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #6",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa digital #1",
+  "costo": "150",
+  "stock": "4",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #7",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #8",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #9",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #10",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #11",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rosa #12",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set gorro bebé café/beige/blanco",
+  "costo": "150",
+  "stock": "2",
+  "nota": "SON SETS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set gorro bebé negro/café/beige",
+  "costo": "150",
+  "stock": "3",
+  "nota": "SON SETS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set gorro bebé dino negro/gris/rosa",
+  "costo": "150",
+  "stock": "2",
+  "nota": "SON SETS",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Monedero rosa cuadrado doble ziper",
+  "costo": "150",
+  "stock": "1",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set collar y aritos cereza",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set pulseras para pareja",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Collar exótico café (regalía)",
+  "costo": "150",
+  "stock": "1",
+  "nota": "fue regalia",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mini Camara Espia a9",
+  "costo": "150",
+  "stock": "109",
+  "nota": "sin caja",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Mini camara tipo bala",
+  "costo": "150",
+  "stock": "99",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cartera negra corona",
+  "costo": "150",
+  "stock": "150",
+  "nota": "En caja",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cajita Negra de Joyería",
+  "costo": "150",
+  "stock": "34",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Multicolageno 60 tabletas",
+  "costo": "150",
+  "stock": "19",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Camara exterior 1 lente Premium",
+  "costo": "150",
+  "stock": "13",
+  "nota": "contando la instalada a pericos",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Camara Multiled Exterior",
+  "costo": "150",
+  "stock": "5",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "cámaras exterior doble lente",
+  "costo": "150",
+  "stock": "4",
+  "nota": "CADA CAJA TRAE 2",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Cajas rectangulares de joyeria reloj",
+  "costo": "150",
+  "stock": "3",
+  "nota": "Venian gratis con set de reloj",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Kit accesorios go pro 63 en 1",
+  "costo": "150",
+  "stock": "13",
+  "nota": "SON SETS GO PRO",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Kit accesorios go pro 52 en 1",
+  "costo": "150",
+  "stock": "7",
+  "nota": "SON SETS GO PRO",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Estuches sets de GO PRO Incompletos",
+  "costo": "150",
+  "stock": "3",
+  "nota": "SETS x Incompletos",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Sets 3 botes de agua grande/mediano/pequeño",
+  "costo": "150",
+  "stock": "3",
+  "nota": "sets completos 1 ser solo grande y pequeño",
+  "editado": "9/11/2025, 5:00:00 p. m."
+},
+{
+  "nombre": "Set reloj rojo #2",
+  "costo": "150",
+  "stock": "2",
+  "nota": "",
+  "editado": "9/11/2025, 5:00:00 p. m."
+}
 ]
