@@ -4,20 +4,27 @@
     "costo": "111",
     "stock": "200",
     "nota": "sadsad",
-    "editado": "9/11/2025, 3:40:21 p. m."
+    "editado": "9/11/2025, 3:40:21 p.Â m."
   },
   {
     "nombre": "asesdfg",
     "costo": "1",
     "stock": "100",
     "nota": "",
-    "editado": "9/11/2025, 3:40:28 p. m."
+    "editado": "9/11/2025, 3:40:28 p.Â m."
   },
   {
     "nombre": "holahola",
     "costo": "22",
     "stock": "144",
     "nota": "dsfser",
-    "editado": "9/11/2025, 3:40:36 p. m."
+    "editado": "9/11/2025, 3:40:36 p.Â m."
+  },
+  {
+    "nombre": "May",
+    "costo": "1",
+    "stock": "10",
+    "nota": "assdad",
+    "editado": "9/11/2025, 3:55:03 p. m."
   }
 ]
