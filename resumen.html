@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen Mensual - Rauda Dev</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f4f6fa;
+    color: #222;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: linear-gradient(90deg, #0078ff, #00c2ff);
+    color: white;
+    padding: 15px 25px;
+    font-size: 1.6em;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Botón hamburguesa */
+  .menu-btn {
+    cursor: pointer;
+    width: 28px;
+    height: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .menu-btn span {
+    display: block;
+    height: 4px;
+    background: white;
+    border-radius: 5px;
+    transition: 0.3s;
+  }
+
+  /* Panel lateral */
+  .menu {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background: white;
+    width: 180px;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  .menu a {
+    padding: 12px;
+    color: #0078ff;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  .menu a:hover {
+    background: #0078ff;
+    color: white;
+  }
+
+  main {
+    max-width: 950px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 25px;
+  }
+
+  h2 {
+    color: #0078ff;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .card {
+    background: #f7faff;
+    border: 1px solid #cce5ff;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .card h3 {
+    margin: 0;
+    color: #005fcc;
+    font-size: 1em;
+  }
+
+  .card p {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 8px 0 0;
+  }
+
+  h3 {
+    margin-top: 30px;
+    color: #0078ff;
+  }
+
+  form {
+    margin-top: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+
+  button {
+    background: #0078ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #005fcc;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 25px;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+
+  th {
+    background: #0078ff;
+    color: white;
+  }
+
+  @media (max-width: 600px) {
+    header { font-size: 1.3em; padding: 12px; }
+    .card p { font-size: 1.1em; }
+    form { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  📈 Resumen Mensual - Rauda Dev
+  <div class="menu-btn" onclick="toggleMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <nav class="menu" id="menu">
+    <a href="index.html">📦 Inventario</a>
+    <a href="resumen.html">📊 Resumen</a>
+  </nav>
+</header>
+
+<main>
+  <h2>Resumen del mes actual</h2>
+
+  <div class="resumen-grid">
+    <div class="card">
+      <h3>Total Invertido</h3>
+      <p id="totalInvertido">L. 0.00</p>
+    </div>
+    <div class="card">
+      <h3>Ventas del mes</h3>
+      <p id="ventasMes">0</p>
+    </div>
+    <div class="card">
+      <h3>Ganancias del mes</h3>
+      <p id="gananciasMes">L. 0.00</p>
+    </div>
+    <div class="card">
+      <h3>Comisiones</h3>
+      <p id="comisionesMes">L. 0.00</p>
+    </div>
+    <div class="card">
+      <h3>Descuentos</h3>
+      <p id="descuentosMes">L. 0.00</p>
+    </div>
+    <div class="card">
+      <h3>Envíos</h3>
+      <p id="enviosMes">L. 0.00</p>
+    </div>
+  </div>
+
+  <h3>Registrar nueva venta</h3>
+  <form id="formVenta">
+    <input type="number" id="ganancia" placeholder="Ganancia (Lps)" required>
+    <input type="number" id="comision" placeholder="Comisión (Lps)" required>
+    <input type="number" id="descuento" placeholder="Descuento (Lps)" required>
+    <input type="number" id="envio" placeholder="Costo de envío (Lps)" required>
+    <button type="submit">Registrar Venta</button>
+  </form>
+
+  <table id="tablaVentas">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Ganancia</th>
+        <th>Comisión</th>
+        <th>Descuento</th>
+        <th>Envío</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script>
+  // menú hamburguesa
+  function toggleMenu() {
+    const menu = document.getElementById("menu");
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  }
+
+  const inventario = JSON.parse(localStorage.getItem("inventario")) || [];
+  const ventas = JSON.parse(localStorage.getItem("ventas")) || [];
+
+  function calcularTotalInvertido() {
+    let total = 0;
+    inventario.forEach(p => {
+      total += (parseFloat(p.costo) || 0) * (parseFloat(p.stock) || 0);
+    });
+    document.getElementById("totalInvertido").textContent = `L. ${total.toFixed(2)}`;
+  }
+
+  function calcularResumenMensual() {
+    const mesActual = new Date().getMonth();
+    const añoActual = new Date().getFullYear();
+
+    const ventasMes = ventas.filter(v => {
+      const fecha = new Date(v.fecha);
+      return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+    });
+
+    const totalGanancias = ventasMes.reduce((a, v) => a + parseFloat(v.ganancia), 0);
+    const totalComisiones = ventasMes.reduce((a, v) => a + parseFloat(v.comision), 0);
+    const totalDescuentos = ventasMes.reduce((a, v) => a + parseFloat(v.descuento), 0);
+    const totalEnvios = ventasMes.reduce((a, v) => a + parseFloat(v.envio), 0);
+
+    document.getElementById("ventasMes").textContent = ventasMes.length;
+    document.getElementById("gananciasMes").textContent = `L. ${totalGanancias.toFixed(2)}`;
+    document.getElementById("comisionesMes").textContent = `L. ${totalComisiones.toFixed(2)}`;
+    document.getElementById("descuentosMes").textContent = `L. ${totalDescuentos.toFixed(2)}`;
+    document.getElementById("enviosMes").textContent = `L. ${totalEnvios.toFixed(2)}`;
+  }
+
+  function renderTablaVentas() {
+    const tbody = document.querySelector("#tablaVentas tbody");
+    tbody.innerHTML = "";
+    ventas.forEach((v, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${new Date(v.fecha).toLocaleString()}</td>
+          <td>L. ${parseFloat(v.ganancia).toFixed(2)}</td>
+          <td>L. ${parseFloat(v.comision).toFixed(2)}</td>
+          <td>L. ${parseFloat(v.descuento).toFixed(2)}</td>
+          <td>L. ${parseFloat(v.envio).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+  }
+
+  document.getElementById("formVenta").addEventListener("submit", e => {
+    e.preventDefault();
+    const nueva = {
+      fecha: new Date().toISOString(),
+      ganancia: parseFloat(document.getElementById("ganancia").value),
+      comision: parseFloat(document.getElementById("comision").value),
+      descuento: parseFloat(document.getElementById("descuento").value),
+      envio: parseFloat(document.getElementById("envio").value)
+    };
+    ventas.push(nueva);
+    localStorage.setItem("ventas", JSON.stringify(ventas));
+    document.getElementById("formVenta").reset();
+    calcularResumenMensual();
+    renderTablaVentas();
+  });
+
+  calcularTotalInvertido();
+  calcularResumenMensual();
+  renderTablaVentas();
+</script>
+</body>
+</html>

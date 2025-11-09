@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventario - Rauda Dev</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f1f4f9;
+    color: #222;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: linear-gradient(90deg, #0078ff, #00c2ff);
+    color: white;
+    padding: 15px 25px;
+    font-size: 1.6em;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Botón hamburguesa */
+  .menu-btn {
+    cursor: pointer;
+    width: 28px;
+    height: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .menu-btn span {
+    display: block;
+    height: 4px;
+    background: white;
+    border-radius: 5px;
+    transition: 0.3s;
+  }
+
+  /* Menú lateral */
+  .menu {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background: white;
+    width: 180px;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  .menu a {
+    padding: 12px;
+    color: #0078ff;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+  }
+
+  .menu a:hover {
+    background: #0078ff;
+    color: white;
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 25px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+  }
+
+  label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+    min-height: 40px;
+  }
+
+  textarea { height: 60px; }
+
+  .btn-add {
+    background: #0078ff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-top: 15px;
+    width: 100%;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .btn-add:hover { background: #005fcc; }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 25px;
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+
+  th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+  }
+
+  th {
+    background: #0078ff;
+    color: white;
+    white-space: nowrap;
+  }
+
+  .btn-edit {
+    background: #ffc107;
+    color: #000;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .btn-delete {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .edit-time {
+    font-size: 0.9em;
+    color: #555;
+  }
+
+  @media (max-width: 600px) {
+    header { font-size: 1.3em; padding: 12px; }
+    main { padding: 15px; margin: 15px; }
+    .btn-add { font-size: 14px; padding: 8px; }
+    table { font-size: 14px; }
+    th, td { padding: 8px 6px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  📦 Inventario Empresarial - Rauda Dev
+  <div class="menu-btn" onclick="toggleMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <nav class="menu" id="menu">
+    <a href="index.html">📦 Inventario</a>
+    <a href="resumen.html">📊 Resumen</a>
+  </nav>
+</header>
+
+<div style="text-align:center; margin:15px;">
+  <button onclick="conectarGithub()">🔗 Conectar</button>
+  <button onclick="sincronizar()">⬇️ Descargar desde GitHub</button>
+  <button onclick="subirInventario()">☁️ Subir inventario</button>
+</div>
+
+
+<main>
+  <div class="form-grid">
+    <div>
+      <label>Nombre de producto:</label>
+      <input type="text" id="nombre" placeholder="Ej. GoPro Hero 12">
+    </div>
+    <div>
+      <label>Costo de inversión:</label>
+      <input type="number" id="costo" min="0" step="0.01" placeholder="Ej. 2500">
+    </div>
+    <div>
+      <label>Cantidad en stock:</label>
+      <input type="number" id="stock" min="0" placeholder="Ej. 10">
+    </div>
+    <div>
+      <label>Comentario o nota:</label>
+      <textarea id="nota" placeholder="Ej. Producto nuevo con accesorios"></textarea>
+    </div>
+  </div>
+  <button class="btn-add" onclick="agregarProducto()">➕ Agregar producto</button>
+
+  <div class="table-container">
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre Producto</th>
+          <th>Costo Inversión</th>
+          <th>Cantidad en Stock</th>
+          <th>Comentario</th>
+          <th>Acciones</th>
+          <th>Última edición</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  function toggleMenu() {
+    const menu = document.getElementById("menu");
+    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+  }
+
+  let productos = JSON.parse(localStorage.getItem("inventario")) || [];
+
+  function guardar() {
+    localStorage.setItem("inventario", JSON.stringify(productos));
+    renderTabla();
+  }
+
+  function agregarProducto() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const costo = document.getElementById("costo").value.trim();
+    const stock = document.getElementById("stock").value.trim();
+    const nota = document.getElementById("nota").value.trim();
+
+    if (!nombre || !costo || !stock) {
+      alert("Por favor completa todos los campos obligatorios.");
+      return;
+    }
+
+    productos.push({
+      nombre,
+      costo,
+      stock,
+      nota,
+      editado: new Date().toLocaleString()
+    });
+
+    guardar();
+    document.getElementById("nombre").value = "";
+    document.getElementById("costo").value = "";
+    document.getElementById("stock").value = "";
+    document.getElementById("nota").value = "";
+  }
+
+  function editarProducto(i) {
+    const p = productos[i];
+    const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
+    const nuevoCosto = prompt("Nuevo costo de inversión:", p.costo);
+    const nuevoStock = prompt("Nueva cantidad en stock:", p.stock);
+    const nuevaNota = prompt("Nuevo comentario o nota:", p.nota);
+
+    if (nuevoNombre && nuevoCosto && nuevoStock) {
+      productos[i] = {
+        nombre: nuevoNombre,
+        costo: nuevoCosto,
+        stock: nuevoStock,
+        nota: nuevaNota,
+        editado: new Date().toLocaleString()
+      };
+      guardar();
+    }
+  }
+
+  function eliminarProducto(i) {
+    if (confirm("¿Seguro que deseas eliminar este producto?")) {
+      productos.splice(i, 1);
+      guardar();
+    }
+  }
+
+  function renderTabla() {
+    const tbody = document.querySelector("#tabla tbody");
+    tbody.innerHTML = "";
+    productos.forEach((p, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${p.nombre}</td>
+          <td>L. ${parseFloat(p.costo).toFixed(2)}</td>
+          <td>${p.stock}</td>
+          <td>${p.nota || "-"}</td>
+          <td>
+            <button class="btn-edit" onclick="editarProducto(${i})">Editar</button>
+            <button class="btn-delete" onclick="eliminarProducto(${i})">Eliminar</button>
+          </td>
+          <td class="edit-time">${p.editado}</td>
+        </tr>
+      `;
+    });
+  }
+
+  renderTabla();
+</script>
+</body>
+
+<!-- Conexión a GitHub -->
+<script src="js/inventory.js"></script>
+<script>
+async function sincronizar() {
+  const data = await leerInventarioGitHub();
+  if (!data.length) return;
+  productos = data;
+  localStorage.setItem("inventario", JSON.stringify(productos));
+  renderTabla();
+  alert("✅ Datos descargados desde GitHub correctamente.");
+}
+
+async function subirInventario() {
+  if (!GITHUB.token) {
+    alert("Primero conecta a GitHub con tu token.");
+    return;
+  }
+  await guardarInventarioGitHub(productos);
+}
+</script>
+
+</html>
