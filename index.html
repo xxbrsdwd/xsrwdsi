@@ -377,10 +377,35 @@ async function actualizarUltimaHora() {
   }
 }
 
-// === Sincronización automática al cargar ===
-window.addEventListener("load", async () => {
+// === Cargar configuración (token + path) al iniciar ===
+async function inicializarConexion() {
+  let token = localStorage.getItem("tokenGitHub");
+  let path = localStorage.getItem("pathGitHub");
+
+  if (!token) {
+    token = prompt("🔑 Ingresa tu token de GitHub (ghp_...):", "");
+    if (!token) {
+      alert("⚠️ Necesitas ingresar el token para conectar con GitHub.");
+      return;
+    }
+    localStorage.setItem("tokenGitHub", token);
+  }
+
+  if (!path) {
+    path = prompt("📂 Ingresa la ruta del archivo JSON (ej. data/inventario.json):", "data/inventario.json");
+    if (!path) {
+      alert("⚠️ Necesitas ingresar la ruta del archivo de inventario.");
+      return;
+    }
+    localStorage.setItem("pathGitHub", path);
+  }
+
+  GITHUB.token = token.trim();
+  GITHUB.path = path.trim();
+
+  console.log("🔗 Conectado a GitHub con ruta:", GITHUB.path);
   await sincronizar(true);
-});
+}
 
 // === SUBIDA AUTOMÁTICA TRAS CUALQUIER CAMBIO ===
 function guardarLocalYSubir() {
@@ -408,9 +433,15 @@ eliminarProducto = function(i) {
   guardarLocalYSubir();
 };
 
+// === AUTO-CONEXIÓN Y SINCRONIZACIÓN AL CARGAR ===
+window.addEventListener("load", async () => {
+  await inicializarConexion();
+});
+
 renderTabla();
 </script>
 </html>
+
 
 
 
