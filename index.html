@@ -348,12 +348,12 @@ async function sincronizar(auto = false) {
   localStorage.setItem("inventario", JSON.stringify(productos));
   renderTabla();
   await actualizarUltimaHora();
-  if (!auto) alert("✅ Inventario actualizado desde GitHub.");
+  if (!auto) console.log("✅ Inventario actualizado automáticamente.");
 }
 
 async function subirInventario(auto = false) {
   if (!GITHUB.token) {
-    console.warn("⚠️ No hay token para subir el inventario.");
+    alert("⚠️ No se detectó token. Conéctate de nuevo para subir el inventario.");
     return;
   }
   await guardarInventarioGitHub(productos);
@@ -361,7 +361,7 @@ async function subirInventario(auto = false) {
   if (!auto) console.log("☁️ Inventario subido automáticamente.");
 }
 
-// === Nueva función: mostrar hora de última actualización ===
+// === Mostrar la hora del último commit ===
 async function actualizarUltimaHora() {
   const info = document.getElementById("ultima-actualizacion");
   try {
@@ -373,48 +373,40 @@ async function actualizarUltimaHora() {
     const fechaLocal = fecha.toLocaleString("es-HN", { hour12: true });
     info.textContent = `✅ Última actualización: ${fechaLocal}`;
   } catch {
-    info.textContent = "⚠️ No se pudo obtener fecha de actualización.";
+    info.textContent = "⚠️ No se pudo obtener la fecha de actualización.";
   }
 }
 
-// === Cargar configuración (token + path) al iniciar ===
+// === Solicitar token SIEMPRE (seguridad total) ===
 async function inicializarConexion() {
-  let token = localStorage.getItem("tokenGitHub");
-  let path = localStorage.getItem("pathGitHub");
-
+  const token = prompt("🔑 Ingresa tu token de GitHub (ghp_...):", "");
   if (!token) {
-    token = prompt("🔑 Ingresa tu token de GitHub (ghp_...):", "");
-    if (!token) {
-      alert("⚠️ Necesitas ingresar el token para conectar con GitHub.");
-      return;
-    }
-    localStorage.setItem("tokenGitHub", token);
-  }
-
-  if (!path) {
-    path = prompt("📂 Ingresa la ruta del archivo JSON (ej. data/inventario.json):", "data/inventario.json");
-    if (!path) {
-      alert("⚠️ Necesitas ingresar la ruta del archivo de inventario.");
-      return;
-    }
-    localStorage.setItem("pathGitHub", path);
+    alert("⚠️ No se ingresó el token. No se podrá conectar a GitHub.");
+    return;
   }
 
   GITHUB.token = token.trim();
-  GITHUB.path = path.trim();
+  GITHUB.path = "data/inventario.json"; // ruta fija
+  console.log("🔗 Token ingresado correctamente.");
 
-  console.log("🔗 Conectado a GitHub con ruta:", GITHUB.path);
+  // Guardar token temporalmente para refresco automático
+  sessionStorage.setItem("tokenGitHub", GITHUB.token);
+
+  // Sincronizar inventario
   await sincronizar(true);
+
+  // 🔁 Refrescar la página automáticamente tras conectar
+  location.reload();
 }
 
-// === SUBIDA AUTOMÁTICA TRAS CUALQUIER CAMBIO ===
+// === Subida automática tras cualquier cambio ===
 function guardarLocalYSubir() {
   localStorage.setItem("inventario", JSON.stringify(productos));
   renderTabla();
   subirInventario(true);
 }
 
-// === Interceptar las funciones de agregar / editar / eliminar ===
+// === Interceptar funciones existentes ===
 const _agregarProducto = agregarProducto;
 agregarProducto = function() {
   _agregarProducto();
@@ -433,14 +425,24 @@ eliminarProducto = function(i) {
   guardarLocalYSubir();
 };
 
-// === AUTO-CONEXIÓN Y SINCRONIZACIÓN AL CARGAR ===
+// === Detectar si ya hay token temporal y sincronizar ===
 window.addEventListener("load", async () => {
-  await inicializarConexion();
+  const tokenPrevio = sessionStorage.getItem("tokenGitHub");
+  if (tokenPrevio) {
+    GITHUB.token = tokenPrevio;
+    GITHUB.path = "data/inventario.json";
+    console.log("🔄 Token existente detectado, sincronizando...");
+    await sincronizar(true);
+  } else {
+    await inicializarConexion();
+  }
 });
 
 renderTabla();
 </script>
 </html>
+
+
 
 
 
