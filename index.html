@@ -343,43 +343,71 @@ async function sincronizar(auto = false) {
   productos = data;
   localStorage.setItem("inventario", JSON.stringify(productos));
   renderTabla();
-
-  // Actualizar hora de última edición (según commit)
   await actualizarUltimaHora();
-
   if (!auto) alert("✅ Inventario actualizado desde GitHub.");
 }
 
-async function subirInventario() {
+async function subirInventario(auto = false) {
   if (!GITHUB.token) {
-    alert("Primero conecta a GitHub con tu token.");
+    console.warn("⚠️ No hay token para subir el inventario.");
     return;
   }
   await guardarInventarioGitHub(productos);
-  await actualizarUltimaHora();
+  await actualizarUltimaHora(auto);
+  if (!auto) console.log("☁️ Inventario subido automáticamente.");
 }
 
-// === Nueva función: mostrar última hora de actualización ===
+// === Nueva función: mostrar hora de última actualización ===
 async function actualizarUltimaHora() {
   const info = document.getElementById("ultima-actualizacion");
   try {
     const url = `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/commits?path=${GITHUB.path}&per_page=1`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error("No se pudo obtener el commit más reciente.");
+    if (!res.ok) throw new Error("No se pudo obtener commit.");
     const [ultimoCommit] = await res.json();
     const fecha = new Date(ultimoCommit.commit.author.date);
     const fechaLocal = fecha.toLocaleString("es-HN", { hour12: true });
     info.textContent = `✅ Última actualización: ${fechaLocal}`;
-  } catch (err) {
-    info.textContent = "⚠️ No se pudo obtener la fecha de actualización.";
+  } catch {
+    info.textContent = "⚠️ No se pudo obtener fecha de actualización.";
   }
 }
 
-// === Sincronizar automáticamente al cargar ===
+// === Sincronización automática al cargar ===
 window.addEventListener("load", async () => {
   await sincronizar(true);
 });
+
+// === SUBIDA AUTOMÁTICA TRAS CUALQUIER CAMBIO ===
+function guardarLocalYSubir() {
+  localStorage.setItem("inventario", JSON.stringify(productos));
+  renderTabla();
+  subirInventario(true);
+}
+
+// === Interceptar las funciones de agregar / editar / eliminar ===
+const _agregarProducto = agregarProducto;
+agregarProducto = function() {
+  _agregarProducto();
+  guardarLocalYSubir();
+};
+
+const _editarProducto = editarProducto;
+editarProducto = function(i) {
+  _editarProducto(i);
+  guardarLocalYSubir();
+};
+
+const _eliminarProducto = eliminarProducto;
+eliminarProducto = function(i) {
+  _eliminarProducto(i);
+  guardarLocalYSubir();
+};
+
+renderTabla();
 </script>
 </html>
+
+
 
 
