@@ -334,13 +334,20 @@
 <!-- Conexión a GitHub -->
 <script src="js/inventory.js"></script>
 <script>
-async function sincronizar() {
+async function sincronizar(auto = false) {
   const data = await leerInventarioGitHub();
-  if (!data.length) return;
+  if (!data.length) {
+    if (!auto) alert("⚠️ No se pudo sincronizar el inventario.");
+    return;
+  }
   productos = data;
   localStorage.setItem("inventario", JSON.stringify(productos));
   renderTabla();
-  alert("✅ Datos descargados desde GitHub correctamente.");
+
+  // Actualizar hora de última edición (según commit)
+  await actualizarUltimaHora();
+
+  if (!auto) alert("✅ Inventario actualizado desde GitHub.");
 }
 
 async function subirInventario() {
@@ -349,7 +356,30 @@ async function subirInventario() {
     return;
   }
   await guardarInventarioGitHub(productos);
+  await actualizarUltimaHora();
 }
-</script>
 
+// === Nueva función: mostrar última hora de actualización ===
+async function actualizarUltimaHora() {
+  const info = document.getElementById("ultima-actualizacion");
+  try {
+    const url = `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/commits?path=${GITHUB.path}&per_page=1`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("No se pudo obtener el commit más reciente.");
+    const [ultimoCommit] = await res.json();
+    const fecha = new Date(ultimoCommit.commit.author.date);
+    const fechaLocal = fecha.toLocaleString("es-HN", { hour12: true });
+    info.textContent = `✅ Última actualización: ${fechaLocal}`;
+  } catch (err) {
+    info.textContent = "⚠️ No se pudo obtener la fecha de actualización.";
+  }
+}
+
+// === Sincronizar automáticamente al cargar ===
+window.addEventListener("load", async () => {
+  await sincronizar(true);
+});
+</script>
 </html>
+
+
