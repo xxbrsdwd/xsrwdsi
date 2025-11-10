@@ -240,7 +240,7 @@ async function subirFoto(i) {
   input.click();
 }
 
-  function editarProducto(i) {
+  async function editarProducto(i) {
   const p = productos[i];
   const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
   const nuevoCosto = prompt("Nuevo costo de inversión:", p.costo);
@@ -256,17 +256,20 @@ async function subirFoto(i) {
       nota: nuevaNota,
       editado: new Date().toLocaleString()
     };
-    guardarInventarioGitHub(productos);
+    await guardarInventarioGitHub(productos); // ✅ ahora espera a que GitHub confirme
     renderTabla();
+    alert("✅ Producto actualizado correctamente.");
   }
 }
 
-function eliminarProducto(i) {
+async function eliminarProducto(i) {
   if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
   productos.splice(i, 1);
-  guardarInventarioGitHub(productos);
+  await guardarInventarioGitHub(productos); // ✅ también espera a que se guarde
   renderTabla();
+  alert("🗑️ Producto eliminado del inventario.");
 }
+
 
 
 function verImagen(url) {
@@ -300,4 +303,5 @@ function renderTabla() {
 </script>
 </body>
 </html>
+
 
