@@ -10,7 +10,6 @@
     background: #f1f4f9;
     color: #222;
     margin: 0;
-    padding: 0;
   }
 
   header {
@@ -22,29 +21,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
   }
 
-  /* Botón hamburguesa */
-  .menu-btn {
-    cursor: pointer;
-    width: 28px;
-    height: 22px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
+  .menu-btn { cursor: pointer; width: 28px; height: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+  .menu-btn span { height: 4px; background: white; border-radius: 5px; }
 
-  .menu-btn span {
-    display: block;
-    height: 4px;
-    background: white;
-    border-radius: 5px;
-    transition: 0.3s;
-  }
-
-  /* Menú lateral */
   .menu {
+    display: none;
     position: absolute;
     top: 60px;
     left: 0;
@@ -52,23 +35,10 @@
     width: 180px;
     border-radius: 0 10px 10px 0;
     box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    display: none;
     flex-direction: column;
-    z-index: 100;
   }
-
-  .menu a {
-    padding: 12px;
-    color: #0078ff;
-    font-weight: bold;
-    text-decoration: none;
-    border-bottom: 1px solid #eee;
-  }
-
-  .menu a:hover {
-    background: #0078ff;
-    color: white;
-  }
+  .menu a { padding: 12px; color: #0078ff; font-weight: bold; text-decoration: none; border-bottom: 1px solid #eee; }
+  .menu a:hover { background: #0078ff; color: white; }
 
   main {
     max-width: 1100px;
@@ -79,26 +49,12 @@
     padding: 25px;
   }
 
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-  }
-
-  label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-  }
-
   input, textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 15px;
-    resize: vertical;
-    min-height: 40px;
   }
 
   textarea { height: 60px; }
@@ -116,79 +72,61 @@
     cursor: pointer;
     transition: 0.2s;
   }
-
   .btn-add:hover { background: #005fcc; }
 
-  .table-container {
-    width: 100%;
-    overflow-x: auto;
-    margin-top: 25px;
-    border-radius: 8px;
-  }
+  .table-container { overflow-x: auto; margin-top: 25px; border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; min-width: 850px; }
+  th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: center; }
+  th { background: #0078ff; color: white; }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px;
-  }
-
-  th, td {
-    border-bottom: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-    vertical-align: middle;
-    word-wrap: break-word;
-  }
-
-  th {
-    background: #0078ff;
-    color: white;
-    white-space: nowrap;
-  }
-
-  .btn-edit {
-    background: #ffc107;
-    color: #000;
-    border: none;
-    padding: 6px 10px;
+  .thumb {
+    width: 50px; height: 50px;
+    object-fit: cover;
     border-radius: 6px;
-    font-weight: bold;
+    cursor: pointer;
+  }
+  .thumb:hover { transform: scale(1.1); }
+
+  .overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  .modal-img img {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 10px;
+  }
+  .cerrar {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 28px;
+    color: white;
     cursor: pointer;
   }
 
-  .btn-delete {
-    background: #dc3545;
+  .btn-small {
+    background: #17a2b8;
     color: white;
     border: none;
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 6px;
-    font-weight: bold;
+    font-size: 13px;
     cursor: pointer;
   }
+  .btn-small:hover { background: #0c7d8f; }
 
-  .edit-time {
-    font-size: 0.9em;
-    color: #555;
-  }
-
-  @media (max-width: 600px) {
-    header { font-size: 1.3em; padding: 12px; }
-    main { padding: 15px; margin: 15px; }
-    .btn-add { font-size: 14px; padding: 8px; }
-    table { font-size: 14px; }
-    th, td { padding: 8px 6px; }
-  }
 </style>
 </head>
 <body>
 <header>
   📦 Inventario Empresarial - Rauda Dev
-  <div class="menu-btn" onclick="toggleMenu()">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
+  <div class="menu-btn" onclick="toggleMenu()"><span></span><span></span><span></span></div>
   <nav class="menu" id="menu">
     <a href="index.html">📦 Inventario</a>
     <a href="resumen.html">📊 Resumen</a>
@@ -196,256 +134,140 @@
 </header>
 
 <div style="text-align:center; margin:15px;">
-  <button onclick="conectarGithub()">🔗 Conectar</button>
-  <button onclick="sincronizar()">⬇️ Descargar desde GitHub</button>
-  <button onclick="subirInventario()">☁️ Subir inventario</button>
+  <button onclick="inicializarConexion()">🔑 Conectar con GitHub</button>
 </div>
-
-  <p id="ultima-actualizacion" style="text-align:center; color:#555; font-size:14px; margin-top:5px;">
-  🔄 Sincronizando inventario...
-</p>
-
+<p id="ultima-actualizacion" style="text-align:center; font-weight:bold;"></p>
 
 <main>
   <div class="form-grid">
-    <div>
-      <label>Nombre de producto:</label>
-      <input type="text" id="nombre" placeholder="Ej. GoPro Hero 12">
-    </div>
-    <div>
-      <label>Costo de inversión:</label>
-      <input type="number" id="costo" min="0" step="0.01" placeholder="Ej. 2500">
-    </div>
-    <div>
-      <label>Cantidad en stock:</label>
-      <input type="number" id="stock" min="0" placeholder="Ej. 10">
-    </div>
-    <div>
-      <label>Comentario o nota:</label>
-      <textarea id="nota" placeholder="Ej. Producto nuevo con accesorios"></textarea>
-    </div>
+    <div><label>Nombre de producto:</label><input type="text" id="nombre"></div>
+    <div><label>Costo de inversión:</label><input type="number" id="costo"></div>
+    <div><label>Cantidad en stock:</label><input type="number" id="stock"></div>
+    <div><label>Comentario o nota:</label><textarea id="nota"></textarea></div>
   </div>
   <button class="btn-add" onclick="agregarProducto()">➕ Agregar producto</button>
 
   <div class="table-container">
     <table id="tabla">
       <thead>
-        <tr>
-          <th>#</th>
-          <th>Nombre Producto</th>
-          <th>Costo Inversión</th>
-          <th>Cantidad en Stock</th>
-          <th>Comentario</th>
-          <th>Acciones</th>
-          <th>Última edición</th>
-        </tr>
+        <tr><th>#</th><th>Producto</th><th>Imagen</th><th>Costo</th><th>Stock</th><th>Acciones</th><th>Última edición</th><th>📸</th></tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
 </main>
 
-<script>
-  function toggleMenu() {
-    const menu = document.getElementById("menu");
-    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
-  }
-
-  let productos = JSON.parse(localStorage.getItem("inventario")) || [];
-
-  function guardar() {
-    localStorage.setItem("inventario", JSON.stringify(productos));
-    renderTabla();
-  }
-
-  function agregarProducto() {
-    const nombre = document.getElementById("nombre").value.trim();
-    const costo = document.getElementById("costo").value.trim();
-    const stock = document.getElementById("stock").value.trim();
-    const nota = document.getElementById("nota").value.trim();
-
-    if (!nombre || !costo || !stock) {
-      alert("Por favor completa todos los campos obligatorios.");
-      return;
-    }
-
-    productos.push({
-      nombre,
-      costo,
-      stock,
-      nota,
-      editado: new Date().toLocaleString()
-    });
-
-    guardar();
-    document.getElementById("nombre").value = "";
-    document.getElementById("costo").value = "";
-    document.getElementById("stock").value = "";
-    document.getElementById("nota").value = "";
-  }
-
-  function editarProducto(i) {
-    const p = productos[i];
-    const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
-    const nuevoCosto = prompt("Nuevo costo de inversión:", p.costo);
-    const nuevoStock = prompt("Nueva cantidad en stock:", p.stock);
-    const nuevaNota = prompt("Nuevo comentario o nota:", p.nota);
-
-    if (nuevoNombre && nuevoCosto && nuevoStock) {
-      productos[i] = {
-        nombre: nuevoNombre,
-        costo: nuevoCosto,
-        stock: nuevoStock,
-        nota: nuevaNota,
-        editado: new Date().toLocaleString()
-      };
-      guardar();
-    }
-  }
-
-  function eliminarProducto(i) {
-    if (confirm("¿Seguro que deseas eliminar este producto?")) {
-      productos.splice(i, 1);
-      guardar();
-    }
-  }
-
-  function renderTabla() {
-    const tbody = document.querySelector("#tabla tbody");
-    tbody.innerHTML = "";
-    productos.forEach((p, i) => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${p.nombre}</td>
-          <td>L. ${parseFloat(p.costo).toFixed(2)}</td>
-          <td>${p.stock}</td>
-          <td>${p.nota || "-"}</td>
-          <td>
-            <button class="btn-edit" onclick="editarProducto(${i})">Editar</button>
-            <button class="btn-delete" onclick="eliminarProducto(${i})">Eliminar</button>
-          </td>
-          <td class="edit-time">${p.editado}</td>
-        </tr>
-      `;
-    });
-  }
-
-  renderTabla();
-</script>
-</body>
-
-<!-- Conexión a GitHub -->
 <script src="js/inventory.js"></script>
 <script>
+let productos = [];
+let token = "";
+let GITHUB_PATH = "data/inventario.json";
+let GITHUB_IMG_FOLDER = "img/";
+
+function toggleMenu() {
+  const menu = document.getElementById("menu");
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+}
+
+async function inicializarConexion() {
+  token = prompt("🔑 Ingresa tu token GitHub (ghp_...):");
+  if (!token) { alert("⚠️ Sin token no se puede conectar."); return; }
+  GITHUB.token = token.trim();
+  GITHUB.path = GITHUB_PATH;
+  await sincronizar(true);
+}
+
 async function sincronizar(auto = false) {
   const data = await leerInventarioGitHub();
-  if (!data.length) {
-    if (!auto) alert("⚠️ No se pudo sincronizar el inventario.");
-    return;
-  }
+  if (!data.length) return;
   productos = data;
   localStorage.setItem("inventario", JSON.stringify(productos));
   renderTabla();
-  await actualizarUltimaHora();
-  if (!auto) console.log("✅ Inventario actualizado automáticamente.");
 }
 
-async function subirInventario(auto = false) {
-  if (!GITHUB.token) {
-    alert("⚠️ No se detectó token. Conéctate de nuevo para subir el inventario.");
-    return;
+async function subirImagenGitHub(file) {
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onload = async () => {
+      const base64 = reader.result.split(",")[1];
+      const fileName = GITHUB_IMG_FOLDER + Date.now() + "_" + file.name;
+      const res = await fetch(`https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${fileName}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${GITHUB.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `Subida ${file.name}`,
+          content: base64
+        })
+      });
+      if (res.ok) {
+        resolve(`https://raw.githubusercontent.com/${GITHUB.owner}/${GITHUB.repo}/main/${fileName}`);
+      } else reject("Error al subir imagen");
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function agregarProducto() {
+  const nombre = nombreEl.value.trim();
+  const costo = costoEl.value.trim();
+  const stock = stockEl.value.trim();
+  const nota = notaEl.value.trim();
+  if (!nombre || !costo || !stock) {
+    alert("Completa todos los campos obligatorios."); return;
   }
+  productos.push({ nombre, costo, stock, nota, imagen: "", editado: new Date().toLocaleString() });
   await guardarInventarioGitHub(productos);
-  await actualizarUltimaHora(auto);
-  if (!auto) console.log("☁️ Inventario subido automáticamente.");
-}
-
-// === Mostrar la hora del último commit ===
-async function actualizarUltimaHora() {
-  const info = document.getElementById("ultima-actualizacion");
-  try {
-    const url = `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/commits?path=${GITHUB.path}&per_page=1`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("No se pudo obtener commit.");
-    const [ultimoCommit] = await res.json();
-    const fecha = new Date(ultimoCommit.commit.author.date);
-    const fechaLocal = fecha.toLocaleString("es-HN", { hour12: true });
-    info.textContent = `✅ Última actualización: ${fechaLocal}`;
-  } catch {
-    info.textContent = "⚠️ No se pudo obtener la fecha de actualización.";
-  }
-}
-
-// === Solicitar token SIEMPRE (seguridad total) ===
-async function inicializarConexion() {
-  const token = prompt("🔑 Ingresa tu token de GitHub (ghp_...):", "");
-  if (!token) {
-    alert("⚠️ No se ingresó el token. No se podrá conectar a GitHub.");
-    return;
-  }
-
-  GITHUB.token = token.trim();
-  GITHUB.path = "data/inventario.json"; // ruta fija
-  console.log("🔗 Token ingresado correctamente.");
-
-  // Guardar token temporalmente para refresco automático
-  sessionStorage.setItem("tokenGitHub", GITHUB.token);
-
-  // Sincronizar inventario
-  await sincronizar(true);
-
-  // 🔁 Refrescar la página automáticamente tras conectar
-  location.reload();
-}
-
-// === Subida automática tras cualquier cambio ===
-function guardarLocalYSubir() {
-  localStorage.setItem("inventario", JSON.stringify(productos));
   renderTabla();
-  subirInventario(true);
+  nombreEl.value = costoEl.value = stockEl.value = notaEl.value = "";
 }
 
-// === Interceptar funciones existentes ===
-const _agregarProducto = agregarProducto;
-agregarProducto = function() {
-  _agregarProducto();
-  guardarLocalYSubir();
-};
+async function subirFoto(i) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const imgURL = await subirImagenGitHub(file);
+    productos[i].imagen = imgURL;
+    productos[i].editado = new Date().toLocaleString();
+    await guardarInventarioGitHub(productos);
+    renderTabla();
+  };
+  input.click();
+}
 
-const _editarProducto = editarProducto;
-editarProducto = function(i) {
-  _editarProducto(i);
-  guardarLocalYSubir();
-};
+function verImagen(url) {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `<div class='modal-img'><img src='${url}'><span class='cerrar' onclick='this.parentElement.parentElement.remove()'>✕</span></div>`;
+  document.body.appendChild(overlay);
+}
 
-const _eliminarProducto = eliminarProducto;
-eliminarProducto = function(i) {
-  _eliminarProducto(i);
-  guardarLocalYSubir();
-};
-
-// === Detectar si ya hay token temporal y sincronizar ===
-window.addEventListener("load", async () => {
-  const tokenPrevio = sessionStorage.getItem("tokenGitHub");
-  if (tokenPrevio) {
-    GITHUB.token = tokenPrevio;
-    GITHUB.path = "data/inventario.json";
-    console.log("🔄 Token existente detectado, sincronizando...");
-    await sincronizar(true);
-  } else {
-    await inicializarConexion();
-  }
-});
-
-renderTabla();
+function renderTabla() {
+  const tbody = document.querySelector("#tabla tbody");
+  tbody.innerHTML = "";
+  productos.forEach((p, i) => {
+    const img = p.imagen ? `<img src="${p.imagen}" class="thumb" onclick="verImagen('${p.imagen}')">` : "Sin imagen";
+    tbody.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${p.nombre}</td>
+        <td>${img}</td>
+        <td>L. ${parseFloat(p.costo).toFixed(2)}</td>
+        <td>${p.stock}</td>
+        <td>
+          <button onclick="editarProducto(${i})">Editar</button>
+          <button onclick="eliminarProducto(${i})">Eliminar</button>
+        </td>
+        <td>${p.editado}</td>
+        <td><button class="btn-small" onclick="subirFoto(${i})">📸 Subir</button></td>
+      </tr>`;
+  });
+}
 </script>
+</body>
 </html>
-
-
-
-
-
-
-
-
