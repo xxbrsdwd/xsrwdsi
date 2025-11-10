@@ -5,122 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inventario - Rauda Dev</title>
 <style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background: #f1f4f9;
-    color: #222;
-    margin: 0;
+  body {font-family:"Segoe UI",sans-serif;background:#f1f4f9;margin:0;color:#222;}
+  header{background:linear-gradient(90deg,#0078ff,#00c2ff);color:white;padding:15px 25px;
+    font-size:1.6em;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+  .menu-btn{cursor:pointer;width:28px;height:22px;display:flex;flex-direction:column;justify-content:space-between;}
+  .menu-btn span{height:4px;background:white;border-radius:5px;}
+  .menu{display:none;position:absolute;top:60px;left:0;background:white;width:180px;border-radius:0 10px 10px 0;
+    box-shadow:0 3px 10px rgba(0,0,0,0.2);flex-direction:column;}
+  .menu a{padding:12px;color:#0078ff;font-weight:bold;text-decoration:none;border-bottom:1px solid #eee;}
+  .menu a:hover{background:#0078ff;color:white;}
+  main{max-width:1200px;margin:30px auto;background:white;border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.1);padding:25px;overflow-x:hidden;}
+  input,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:15px;}
+  textarea{height:60px;}
+  .btn-add{background:#0078ff;color:white;border:none;padding:10px;border-radius:8px;font-weight:bold;
+    font-size:15px;margin-top:15px;width:100%;cursor:pointer;transition:0.2s;}
+  .btn-add:hover{background:#005fcc;}
+  .table-container{width:100%;margin-top:25px;}
+  table{width:100%;border-collapse:collapse;table-layout:auto;}
+  th,td{border-bottom:1px solid #ddd;padding:10px;text-align:center;vertical-align:top;word-wrap:break-word;}
+  th{background:#0078ff;color:white;}
+  td:nth-child(6){white-space:pre-wrap;word-break:break-word;text-align:left;}
+  .thumb{width:55px;height:55px;object-fit:cover;border-radius:8px;cursor:pointer;transition:transform 0.2s ease;}
+  .thumb:hover{transform:scale(1.1);}
+  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);
+    display:flex;justify-content:center;align-items:center;z-index:9999;}
+  .modal-img img{max-width:90vw;max-height:80vh;border-radius:10px;}
+  .cerrar{position:absolute;top:20px;right:30px;font-size:28px;color:white;cursor:pointer;}
+  .btn-small{background:#17a2b8;color:white;border:none;padding:5px 8px;border-radius:6px;
+    font-size:13px;cursor:pointer;}
+  .btn-small:hover{background:#0c7d8f;}
+  @media(max-width:768px){
+    table,thead,tbody,tr,td,th{display:block;}
+    thead{display:none;}
+    tr{margin-bottom:12px;border:1px solid #ccc;border-radius:10px;padding:8px;background:#f9f9f9;}
+    td{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;text-align:left;}
+    td::before{content:attr(data-label);font-weight:bold;color:#0078ff;}
   }
-
-  header {
-    background: linear-gradient(90deg, #0078ff, #00c2ff);
-    color: white;
-    padding: 15px 25px;
-    font-size: 1.6em;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .menu-btn { cursor: pointer; width: 28px; height: 22px; display: flex; flex-direction: column; justify-content: space-between; }
-  .menu-btn span { height: 4px; background: white; border-radius: 5px; }
-
-  .menu {
-    display: none;
-    position: absolute;
-    top: 60px;
-    left: 0;
-    background: white;
-    width: 180px;
-    border-radius: 0 10px 10px 0;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    flex-direction: column;
-  }
-  .menu a { padding: 12px; color: #0078ff; font-weight: bold; text-decoration: none; border-bottom: 1px solid #eee; }
-  .menu a:hover { background: #0078ff; color: white; }
-
-  main {
-    max-width: 1100px;
-    margin: 30px auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    padding: 25px;
-  }
-
-  input, textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 15px;
-  }
-
-  textarea { height: 60px; }
-
-  .btn-add {
-    background: #0078ff;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 15px;
-    margin-top: 15px;
-    width: 100%;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .btn-add:hover { background: #005fcc; }
-
-  .table-container { overflow-x: auto; margin-top: 25px; border-radius: 8px; }
-  table { width: 100%; border-collapse: collapse; min-width: 850px; }
-  th, td { border-bottom: 1px solid #ddd; padding: 10px; text-align: center; }
-  th { background: #0078ff; color: white; }
-
-  .thumb {
-    width: 50px; height: 50px;
-    object-fit: cover;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .thumb:hover { transform: scale(1.1); }
-
-  .overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  }
-  .modal-img img {
-    max-width: 90vw;
-    max-height: 80vh;
-    border-radius: 10px;
-  }
-  .cerrar {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    font-size: 28px;
-    color: white;
-    cursor: pointer;
-  }
-
-  .btn-small {
-    background: #17a2b8;
-    color: white;
-    border: none;
-    padding: 5px 8px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .btn-small:hover { background: #0c7d8f; }
-
 </style>
 </head>
 <body>
@@ -133,10 +54,10 @@
   </nav>
 </header>
 
-<div style="text-align:center; margin:15px;">
+<div style="text-align:center;margin:15px;">
   <button onclick="inicializarConexion()">🔑 Conectar con GitHub</button>
 </div>
-<p id="ultima-actualizacion" style="text-align:center; font-weight:bold;"></p>
+<p id="ultima-actualizacion" style="text-align:center;font-weight:bold;"></p>
 
 <main>
   <div class="form-grid">
@@ -150,7 +71,17 @@
   <div class="table-container">
     <table id="tabla">
       <thead>
-        <tr><th>#</th><th>Producto</th><th>Imagen</th><th>Costo</th><th>Stock</th><th>Acciones</th><th>Última edición</th><th>📸</th></tr>
+        <tr>
+          <th>#</th>
+          <th>Producto</th>
+          <th>Imagen</th>
+          <th>Costo</th>
+          <th>Stock</th>
+          <th>Comentario</th>
+          <th>Acciones</th>
+          <th>Última edición</th>
+          <th>📸</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -159,149 +90,143 @@
 
 <script src="js/inventory.js"></script>
 <script>
-let productos = [];
-let token = "";
-let GITHUB_PATH = "data/inventario.json";
-let GITHUB_IMG_FOLDER = "img/";
+let productos=[];
+let token="";
+let GITHUB_PATH="data/inventario.json";
+let GITHUB_IMG_FOLDER="img/";
 
-function toggleMenu() {
-  const menu = document.getElementById("menu");
-  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+function toggleMenu(){
+  const m=document.getElementById("menu");
+  m.style.display=m.style.display==="flex"?"none":"flex";
 }
 
-async function inicializarConexion() {
-  token = prompt("🔑 Ingresa tu token GitHub (ghp_...):");
-  if (!token) { alert("⚠️ Sin token no se puede conectar."); return; }
-  GITHUB.token = token.trim();
-  GITHUB.path = GITHUB_PATH;
+async function inicializarConexion(){
+  token=prompt("🔑 Ingresa tu token GitHub (ghp_...):");
+  if(!token){alert("⚠️ Sin token no se puede conectar.");return;}
+  GITHUB.token=token.trim();
+  GITHUB.path=GITHUB_PATH;
   await sincronizar(true);
 }
 
-async function sincronizar(auto = false) {
-  const data = await leerInventarioGitHub();
-  if (!data.length) return;
-  productos = data;
-  localStorage.setItem("inventario", JSON.stringify(productos));
+async function sincronizar(auto=false){
+  const data=await leerInventarioGitHub();
+  if(!data.length)return;
+  productos=data;
+  localStorage.setItem("inventario",JSON.stringify(productos));
   renderTabla();
 }
 
-async function subirImagenGitHub(file) {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = async () => {
-      const base64 = reader.result.split(",")[1];
-      const fileName = GITHUB_IMG_FOLDER + Date.now() + "_" + file.name;
-      const res = await fetch(`https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${fileName}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${GITHUB.token}`,
-          "Content-Type": "application/json"
+async function subirImagenGitHub(file){
+  const reader=new FileReader();
+  return new Promise((resolve,reject)=>{
+    reader.onload=async()=>{
+      const base64=reader.result.split(",")[1];
+      const fileName=GITHUB_IMG_FOLDER+Date.now()+"_"+file.name;
+      const res=await fetch(`https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${fileName}`,{
+        method:"PUT",
+        headers:{
+          "Authorization":`token ${GITHUB.token}`,
+          "Content-Type":"application/json"
         },
-        body: JSON.stringify({
-          message: `Subida ${file.name}`,
-          content: base64
-        })
+        body:JSON.stringify({message:`Subida ${file.name}`,content:base64})
       });
-      if (res.ok) {
+      if(res.ok){
         resolve(`https://raw.githubusercontent.com/${GITHUB.owner}/${GITHUB.repo}/main/${fileName}`);
-      } else reject("Error al subir imagen");
+      }else reject("Error al subir imagen");
     };
     reader.readAsDataURL(file);
   });
 }
 
-async function agregarProducto() {
-  const nombre = nombreEl.value.trim();
-  const costo = costoEl.value.trim();
-  const stock = stockEl.value.trim();
-  const nota = notaEl.value.trim();
-  if (!nombre || !costo || !stock) {
-    alert("Completa todos los campos obligatorios."); return;
-  }
-  productos.push({ nombre, costo, stock, nota, imagen: "", editado: new Date().toLocaleString() });
+async function agregarProducto(){
+  const nombre=document.getElementById("nombre").value.trim();
+  const costo=document.getElementById("costo").value.trim();
+  const stock=document.getElementById("stock").value.trim();
+  const nota=document.getElementById("nota").value.trim();
+  if(!nombre||!costo||!stock){alert("Completa todos los campos.");return;}
+  productos.push({nombre,costo,stock,nota,imagen:"",editado:new Date().toISOString()});
   await guardarInventarioGitHub(productos);
   renderTabla();
-  nombreEl.value = costoEl.value = stockEl.value = notaEl.value = "";
+  document.getElementById("nombre").value="";
+  document.getElementById("costo").value="";
+  document.getElementById("stock").value="";
+  document.getElementById("nota").value="";
 }
 
-async function subirFoto(i) {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.onchange = async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const imgURL = await subirImagenGitHub(file);
-    productos[i].imagen = imgURL;
-    productos[i].editado = new Date().toLocaleString();
+async function subirFoto(i){
+  const input=document.createElement("input");
+  input.type="file";
+  input.accept="image/*";
+  input.onchange=async e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    const imgURL=await subirImagenGitHub(file);
+    productos[i].imagen=imgURL;
+    productos[i].editado=new Date().toISOString();
     await guardarInventarioGitHub(productos);
     renderTabla();
+    alert("📸 Imagen subida correctamente.");
   };
   input.click();
 }
 
-  async function editarProducto(i) {
-  const p = productos[i];
-  const nuevoNombre = prompt("Nuevo nombre:", p.nombre);
-  const nuevoCosto = prompt("Nuevo costo de inversión:", p.costo);
-  const nuevoStock = prompt("Nueva cantidad en stock:", p.stock);
-  const nuevaNota = prompt("Nuevo comentario o nota:", p.nota);
-
-  if (nuevoNombre && nuevoCosto && nuevoStock) {
-    productos[i] = {
-      ...p,
-      nombre: nuevoNombre,
-      costo: nuevoCosto,
-      stock: nuevoStock,
-      nota: nuevaNota,
-      editado: new Date().toLocaleString()
-    };
-    await guardarInventarioGitHub(productos); // ✅ ahora espera a que GitHub confirme
+async function editarProducto(i){
+  const p=productos[i];
+  const nuevoNombre=prompt("Nuevo nombre:",p.nombre);
+  const nuevoCosto=prompt("Nuevo costo de inversión:",p.costo);
+  const nuevoStock=prompt("Nueva cantidad en stock:",p.stock);
+  const nuevaNota=prompt("Nuevo comentario o nota:",p.nota);
+  if(nuevoNombre&&nuevoCosto&&nuevoStock){
+    productos[i]={...p,nombre:nuevoNombre,costo:nuevoCosto,stock:nuevoStock,nota:nuevaNota,
+      editado:new Date().toISOString()};
+    await guardarInventarioGitHub(productos);
     renderTabla();
-    alert("✅ Producto actualizado correctamente.");
+    alert("✅ Producto editado correctamente.");
   }
 }
 
-async function eliminarProducto(i) {
-  if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
-  productos.splice(i, 1);
-  await guardarInventarioGitHub(productos); // ✅ también espera a que se guarde
+async function eliminarProducto(i){
+  if(!confirm("¿Seguro que deseas eliminar este producto?"))return;
+  productos.splice(i,1);
+  await guardarInventarioGitHub(productos);
   renderTabla();
   alert("🗑️ Producto eliminado del inventario.");
 }
 
-
-
-function verImagen(url) {
-  const overlay = document.createElement("div");
-  overlay.className = "overlay";
-  overlay.innerHTML = `<div class='modal-img'><img src='${url}'><span class='cerrar' onclick='this.parentElement.parentElement.remove()'>✕</span></div>`;
+function verImagen(url){
+  const overlay=document.createElement("div");
+  overlay.className="overlay";
+  overlay.innerHTML=`<div class='modal-img'><img src='${url}'><span class='cerrar' onclick='this.parentElement.parentElement.remove()'>✕</span></div>`;
   document.body.appendChild(overlay);
 }
 
-function renderTabla() {
-  const tbody = document.querySelector("#tabla tbody");
-  tbody.innerHTML = "";
-  productos.forEach((p, i) => {
-    const img = p.imagen ? `<img src="${p.imagen}" class="thumb" onclick="verImagen('${p.imagen}')">` : "Sin imagen";
-    tbody.innerHTML += `
+function renderTabla(){
+  const tbody=document.querySelector("#tabla tbody");
+  tbody.innerHTML="";
+  productos.forEach((p,i)=>{
+    let fecha;
+    try{
+      const date=new Date(p.editado);
+      fecha=date.toLocaleString("es-HN",{hour12:true,day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    }catch{fecha=p.editado;}
+    const img=p.imagen?`<img src="${p.imagen}" class="thumb" onclick="verImagen('${p.imagen}')">`:"Sin imagen";
+    tbody.innerHTML+=`
       <tr>
-        <td>${i + 1}</td>
-        <td>${p.nombre}</td>
-        <td>${img}</td>
-        <td>L. ${parseFloat(p.costo).toFixed(2)}</td>
-        <td>${p.stock}</td>
-        <td>
-          <button onclick="editarProducto(${i})">Editar</button>
-          <button onclick="eliminarProducto(${i})">Eliminar</button>
+        <td data-label="#">${i+1}</td>
+        <td data-label="Producto">${p.nombre}</td>
+        <td data-label="Imagen">${img}</td>
+        <td data-label="Costo">L. ${parseFloat(p.costo).toFixed(2)}</td>
+        <td data-label="Stock">${p.stock}</td>
+        <td data-label="Comentario">${p.nota||"-"}</td>
+        <td data-label="Acciones">
+          <button class="btn-small" onclick="editarProducto(${i})">✏️ Editar</button>
+          <button class="btn-small" style="background:#dc3545" onclick="eliminarProducto(${i})">🗑️ Eliminar</button>
         </td>
-        <td>${p.editado}</td>
-        <td><button class="btn-small" onclick="subirFoto(${i})">📸 Subir</button></td>
+        <td data-label="Última edición">${fecha}</td>
+        <td data-label="Foto"><button class="btn-small" onclick="subirFoto(${i})">📸 Subir</button></td>
       </tr>`;
   });
 }
 </script>
 </body>
 </html>
-
-
